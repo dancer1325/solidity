@@ -36,7 +36,7 @@
 
 ## Documentation
 
-* [here](docs)
+* [here](docs/index.rst)
 
 ## Development
 
