@@ -10,9 +10,12 @@
   * == language /
     * statically-typed,
     * contract-oriented,
+    * object-oriented
     * high-level
+    * [curly-bracket](https://en.wikipedia.org/wiki/List_of_programming_languages_by_type#Curly_bracket_languages)
   * allows
     * 👀| Ethereum platform (== EVM), implementing smart contracts 👀
+  * target -- the -- Ethereum Virtual Machine (EVM)
   * [Solidity Language Portal](https://soliditylang.org)
 
 ## Background
