@@ -32,6 +32,7 @@
       * ownership,
       * voting,
       * OTHER logics
+    * == code (functions) + data (state) / place | Ethereum blockchain
   * recommendations
     * | deploy contracts,
       * 👀use the Solidity latest released version 👀
