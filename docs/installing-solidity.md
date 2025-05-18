@@ -25,24 +25,21 @@ Versioning
   4. A breaking change is introduced --> version is bumped to 0.5.0.
   5. The 0.5.0 release is made.
 
-
 Remix
 =====
 
-* TODO:
-*We recommend Remix for small contracts and for quickly learning Solidity.*
+* uses
+  * small contracts
+  * quickly learning Solidity
+  * testing nightly builds
+    * Reason: 🧠avoid installing MULTIPLE Solidity versions🧠
 
-`Access Remix online <https://remix.ethereum.org/>`_, you do not need to install anything.
-If you want to use it without connection to the Internet, go to
-https://github.com/ethereum/remix-live/tree/gh-pages#readme and follow the instructions on that page.
-Remix is also a convenient option for testing nightly builds
-without installing multiple Solidity versions.
+* NOT need to install
 
-Further options on this page detail installing command-line Solidity compiler software
-on your computer. Choose a command-line compiler if you are working on a larger contract
-or if you require more compilation options.
+* ways to use it
+  * | [browser](https://remix.ethereum.org/)
+  * [locally / WITHOUT connection](https://github.com/ethereum/remix-live/tree/gh-pages)
 
-.. _solcjs:
 
 npm / Node.js
 =============
@@ -73,44 +70,38 @@ Please refer to the solc-js repository for instructions.
 Docker
 ======
 
-Docker images of Solidity builds are available using the ``solc`` image from the ``ethereum`` organization.
-Use the ``stable`` tag for the latest released version, and ``nightly`` for potentially unstable changes in the ``develop`` branch.
+* Docker image
+  * runs the compiler executable
+    * -> you can pass ALL compiler arguments | it
 
-The Docker image runs the compiler executable so that you can pass all compiler arguments to it.
-For example, the command below pulls the stable version of the ``solc`` image (if you do not have it already),
-and runs it in a new container, passing the ``--help`` argument.
+* -- via -- "solc" image | "ethereum" organization /
+  * tag "stable"
+    * == latest released version
+  * tag "nightly"
+    * == POTENTIAL unstable changes | "develop" branch
 
-.. code-block:: bash
+* `docker run ethereum/solc:stable --help`
 
-    docker run ethereum/solc:stable --help
-
-.. note::
-
-    Specific compiler versions are supported as the Docker image tag such as ``ethereum/solc:0.8.23``.
-    We will be passing the ``stable`` tag here instead of specific version tag to ensure that users get
-    the latest version by default and avoid the issue of an out-of-date version.
-
-To use the Docker image to compile Solidity files on the host machine, mount a
-local folder for input and output, and specify the contract to compile. For example:
-
-.. code-block:: bash
-
-    docker run \
-        --volume "/tmp/some/local/path/:/sources/" \
-        ethereum/solc:stable \
-            /sources/Contract.sol \
-            --abi \
-            --bin \
-            --output-dir /sources/output/
-
-You can also use the standard JSON interface (which is recommended when using the compiler with tooling).
-When using this interface, it is not necessary to mount any directories as long as the JSON input is
-self-contained (i.e. it does not refer to any external files that would have to be
-:ref:`loaded by the import callback <initial-vfs-content-standard-json-with-import-callback>`).
-
-.. code-block:: bash
-
-    docker run ethereum/solc:stable --standard-json < input.json > output.json
+* if you want to compile Solidity files | host machine ->
+  * OPTION1
+    * mount a local folder / input & output
+    * specify the contract -- to -- compile
+      ```
+      docker run \
+              --volume "/tmp/some/local/path/:/sources/" \
+              ethereum/solc:stable \
+                  /sources/Contract.sol \
+                  --abi \
+                  --bin \
+                  --output-dir /sources/output/
+      ```
+  * OPTION2
+    * use the standard JSON interface
+      ```
+      docker run ethereum/solc:stable --standard-json < input.json > output.json
+      ```
+      * ❌NOT need to mount directories❌
+        * see [path resolution](path-resolution.md)
 
 Linux Packages
 ==============
@@ -172,41 +163,18 @@ with the most recent changes, please use the following:
 macOS Packages
 ==============
 
-We distribute the Solidity compiler through Homebrew
-as a build-from-source version. Pre-built bottles are
-currently not supported.
+* `brew tap ethereum/ethereum && brew install solidity`
+  * install latest one
 
-.. code-block:: bash
+* `brew install solidity@someMajorReleaseNumber`
+  * install specific MAJOR release
+  * _Example:_ `brew install solidity@4`
 
-    brew update
-    brew upgrade
-    brew tap ethereum/ethereum
-    brew install solidity
+* [repo](https://github.com/ethereum/homebrew-ethereum)
 
-To install the most recent 0.4.x / 0.5.x version of Solidity you can also use ``brew install solidity@4``
-and ``brew install solidity@5``, respectively.
-
-If you need a specific version of Solidity you can install a
-Homebrew formula directly from Github.
-
-View
-`solidity.rb commits on GitHub <https://github.com/ethereum/homebrew-ethereum/commits/master/solidity.rb>`_.
-
-Copy the commit hash of the version you want and check it out on your machine.
-
-.. code-block:: bash
-
-    git clone https://github.com/ethereum/homebrew-ethereum.git
-    cd homebrew-ethereum
-    git checkout <your-hash-goes-here>
-
-Install it using ``brew``:
-
-.. code-block:: bash
-
-    brew unlink solidity
-    # eg. Install 0.4.8
-    brew install solidity.rb
+* uses
+  * large contracts
+  * you require MORE compilation options
 
 Static Binaries
 ===============
