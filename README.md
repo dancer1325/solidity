@@ -40,7 +40,7 @@
 * Solidity versioning
   * CURRENTLY, 0.x version
     * [here](https://semver.org/#spec-item-4)
-    * == breaking changes OR NEW features OR bug fixes, could happen
+  * [here](docs/installing-solidity.md#versioning)
   * [security fixes, ONLY | latest version](SECURITY.md)
 
 ## Documentation
