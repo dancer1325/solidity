@@ -41,31 +41,24 @@ Remix
   * [locally / WITHOUT connection](https://github.com/ethereum/remix-live/tree/gh-pages)
 
 
-npm / Node.js
+npm / Node.js -- `solcjs` --
 =============
 
-Use ``npm`` for a convenient and portable way to install ``solcjs``, a Solidity compiler. The
-``solcjs`` program has fewer features than the ways to access the compiler described
-further down this page. The
-:ref:`commandline-compiler` documentation assumes you are using
-the full-featured compiler, ``solc``. The usage of ``solcjs`` is documented inside its own
-`repository <https://github.com/ethereum/solc-js>`_.
+* == Solidity compiler /
+  * derived -- , via Emscripten, from -- `solc`
+    * == 👀USE SAME compiler source code👀
+* vs `solc`
+  * fewer features
+  * NOT
+    * same CL's options
+    * support SAME tools
+      * _Example:_ `geth`
 
-Note: The solc-js project is derived from the C++
-``solc`` by using Emscripten, which means that both use the same compiler source code.
-``solc-js`` can be used in JavaScript projects directly (such as Remix).
+* uses
+  * | JS projects DIRECTLY
 Please refer to the solc-js repository for instructions.
 
-.. code-block:: bash
-
-    npm install --global solc
-
-.. note::
-
-    The command-line executable is named ``solcjs``.
-
-    The command-line options of ``solcjs`` are not compatible with ``solc`` and tools (such as ``geth``)
-    expecting the behavior of ``solc`` will not work with ``solcjs``.
+* see [here](https://github.com/ethereum/solc-js)
 
 Docker
 ======
@@ -81,6 +74,9 @@ Docker
     * == POTENTIAL unstable changes | "develop" branch
 
 * `docker run ethereum/solc:stable --help`
+  * Problems:
+    * Problem1: NOT support arm64 architecture
+      * Solution: TODO:
 
 * if you want to compile Solidity files | host machine ->
   * OPTION1
@@ -490,35 +486,55 @@ Alternatively, you can build for Windows on the command-line, like so:
 CMake Options
 =============
 
-If you are interested what CMake options are available run ``cmake .. -LH``.
-
-.. _smt_solvers_build:
+* install cmake
+  * | MacOs
+    * `brew install cmake`
+* | root path,
+  * `cmake -LH`
+    * `-L`
+      * == list ALL cached variables / options
+    * `-H`
+      * help
 
 SMT Solvers
 -----------
-Solidity can optionally use SMT solvers, namely ``z3``, ``cvc5`` and ``Eldarica``,
-but their presence is checked only at runtime, they are not needed for the build to succeed.
 
-.. note::
-
-    The emscripten builds require Z3 and will statically link against it instead.
+* OPTIONAL
+  * == Solidity can -- OPTIONALLY use –– SMT solvers
+* SUPPORTED (by Solidity compiler)
+  * `z3`,
+    * if you use emscripten -> | build time, it's required
+  * `cvc5`
+  * `Eldarica`
+* | runtime,
+  * checked
 
 The Version String in Detail
 ============================
 
-The Solidity version string contains four parts:
+* goal
+  * solidity compiler's version
 
-- the version number
-- pre-release tag, usually set to ``develop.YYYY.MM.DD`` or ``nightly.YYYY.MM.DD``
-- commit in the format of ``commit.GITHASH``
-- platform, which has an arbitrary number of items, containing details about the platform and compiler
+* `solc --version`
+  * to check it
 
-If there are local modifications, the commit will be postfixed with ``.mod``.
+* `versionNumber preReleaseTag commit platform`
+  * 👀Solidity version pattern👀
+  * `preReleaseTag`
+    * ONLY, if you use a pre-release tag
+    * Solidity pre-release tag == SemVer pre-release
+    * _Examples:_
+      * `develop.YYYY.MM.DD`
+      * `nightly.YYYY.MM.DD`
+  * `commit`
+    * format -- `commit.GITHASH`
+  * `platform`
+    * arbitrary NUMBER of items
+  * if there are LOCAL modifications -> commit postfixed with `.mod`
 
-These parts are combined as required by SemVer, where the Solidity pre-release tag equals to the SemVer pre-release
-and the Solidity commit and platform combined make up the SemVer build metadata.
+* _Example:_
+  * release example `0.4.8+commit.60cc1668.Emscripten.clang`
+  * pre-release example `0.4.9-nightly.2017.1.17+commit.6ecb4aa3.Emscripten.clang`
 
-A release example: ``0.4.8+commit.60cc1668.Emscripten.clang``.
-
-A pre-release example: ``0.4.9-nightly.2017.1.17+commit.6ecb4aa3.Emscripten.clang``
-
+* SemVer build metadata
+  * == `commit platform`
