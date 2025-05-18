@@ -20,31 +20,49 @@ Integrated (Ethereum) Development Environments
 ==============================================
 
 * `Ape <https://docs.apeworx.io/ape>`_
-        A Python-based web3 development tool for compiling, testing, and interacting with smart contracts.
+    * == Python-based web3 development tool /
+        * allows, about smart contracts,
+            * compiling,
+            * testing,
+            * interacting9
+    * \| Python-ecosystem,
+        * recommended one
 
 * `Brownie <https://eth-brownie.readthedocs.io/en/stable/>`_
-        A Python-based development and testing framework for smart contracts targeting the Ethereum Virtual Machine.
-        💡 Note: As per the official docs, Brownie is no longer actively maintained.
-        Future releases may come sporadically - or never at all.
-        Check out Ape Framework (first in list) for all your python Ethereum development needs.
+    * == Python-based development & testing framework -- for -- smart contracts /
+        * target the EVM
+    * ❌NO longer actively maintained ❌
 
 * `Dapp <https://dapp.tools/>`_
-        Tool for building, testing and deploying smart contracts from the command-line.
+    * == CL tool /
+        * allows, about smart contracts,
+            * building,
+            * testing
+            * deploying
 
 * `Foundry <https://github.com/foundry-rs/foundry>`_
-        Fast, portable and modular toolkit for Ethereum application development written in Rust.
+    * Ethereum application development toolkit /
+        * Fast
+        * portable
+        * modular
+        * written in Rust
 
 * `Hardhat <https://hardhat.org/>`_
-        Ethereum development environment with local Ethereum network, debugging features and plugin ecosystem.
+    * Ethereum development environment /
+        * local Ethereum network,
+        * debugging features
+        * plugin ecosystem
 
 * `Remix <https://remix.ethereum.org/>`_
-        Browser-based IDE with integrated compiler and Solidity runtime environment without server-side components.
+    * Browser-based IDE /
+        * integrated -- WITHOUT server-side components --
+            * compiler &
+            * Solidity runtime environment
 
 * `Truffle <https://trufflesuite.com/truffle/>`_
-        Ethereum development framework.
-        💡 Note: Consensys announced the sunset of Truffle on September 21, 2023.
-        Current users may check out the migration path and available product support `here.
-        <https://consensys.io/blog/consensys-announces-the-sunset-of-truffle-and-ganache-and-new-hardhat>`_
+    * Ethereum development framework
+        * ❌NO longer actively maintained ❌
+        * migration to hardhard <https://consensys.io/blog/consensys-announces-the-sunset-of-truffle-and-ganache-and-new-hardhat>`_
 
 Editor Integrations
 ===================
@@ -57,7 +75,6 @@ Editor Integrations
 * IntelliJ
 
     * `IntelliJ IDEA plugin <https://plugins.jetbrains.com/plugin/9475-solidity/>`_
-        Solidity plugin for IntelliJ IDEA (and all other JetBrains IDEs).
 
 * Sublime Text
 
