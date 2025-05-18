@@ -10,9 +10,16 @@
   * == language /
     * statically-typed,
     * contract-oriented,
+    * object-oriented
     * high-level
+    * [curly-bracket](https://en.wikipedia.org/wiki/List_of_programming_languages_by_type#Curly_bracket_languages)
+  * supports
+    * inheritance
+    * libraries
+    * complex user-defined types
   * allows
     * 👀| Ethereum platform (== EVM), implementing smart contracts 👀
+  * target -- the -- Ethereum Virtual Machine (EVM)
   * [Solidity Language Portal](https://soliditylang.org)
 
 ## Background
@@ -25,18 +32,20 @@
       * ownership,
       * voting,
       * OTHER logics
+    * == code (functions) + data (state) / place | Ethereum blockchain
   * recommendations
     * | deploy contracts,
-      * use the Solidity latest released version
+      * 👀use the Solidity latest released version 👀
 
 * Solidity versioning
   * CURRENTLY, 0.x version
     * [here](https://semver.org/#spec-item-4)
-    * == breaking changes OR NEW features OR bug fixes, could happen
+  * [here](docs/installing-solidity.md#versioning)
+  * [security fixes, ONLY | latest version](SECURITY.md)
 
 ## Documentation
 
-* [here](docs)
+* [here](docs/index.rst)
 
 ## Development
 
