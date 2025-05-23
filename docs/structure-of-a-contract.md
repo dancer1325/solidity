@@ -20,6 +20,7 @@ pragma solidity >=0.4.0 <0.9.0;
 
 contract SimpleStorage {
     uint storedData; // State variable
+    uint public data = 42;      // ANOTHER state variable / | declare, intialized
     // ...
 }
 ```
