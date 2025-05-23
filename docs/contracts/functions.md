@@ -281,29 +281,40 @@ Special Functions
 
 .. _receive-ether-function:
 
-Receive Ether Function
+Receive Ether Function -- `receive()` --
 ----------------------
 
-A contract can have at most one ``receive`` function, declared using
-``receive() external payable { ... }``
-(without the ``function`` keyword).
-This function cannot have arguments, cannot return anything and must have
-``external`` visibility and ``payable`` state mutability.
-It can be virtual, can override and can have modifiers.
+* contract
+  * ⚠️has <=1 ``receive`` function -- declared, via -- ``receive() external payable { ... }`` ⚠️/
+    * ❌does NOT contain ``function`` keyword❌
+    * can
+      * NOT
+        * have arguments
+        * return anything
+      * be virtual
+      * override & have modifiers
+    * MUST have
+      * ``external`` visibility
+      * ``payable`` state mutability
 
-The receive function is executed on a
-call to the contract with empty calldata. This is the function that is executed
-on plain Ether transfers (e.g. via ``.send()`` or ``.transfer()``). If no such
-function exists, but a payable :ref:`fallback function <fallback-function>`
-exists, the fallback function will be called on a plain Ether transfer. If
-neither a receive Ether nor a payable fallback function is present, the
-contract cannot receive Ether through a transaction that does not represent a payable function call and throws an
-exception.
+* executed |
+  * call to the contract / EMPTY calldata,
+  * plain Ether transfers
+    * _Example:_ -- via -- ``.send()`` or ``.transfer()``
+    * if NO such function exists, BUT exists a [payable](#fallback-function) -> fallback function will be called | plain Ether transfer
+
+* recommendations
+  * ALWAYS define it
+
+* TODO:
+If neither a receive Ether nor a payable fallback function is present, the
+    contract cannot receive Ether through a transaction that does not represent a payable function call and throws an
+    exception.
 
 In the worst case, the ``receive`` function can only rely on 2300 gas being
 available (for example when ``send`` or ``transfer`` is used), leaving little
-room to perform other operations except basic logging. The following operations
-will consume more gas than the 2300 gas stipend:
+room to perform other operations except basic logging
+The following operations will consume more gas than the 2300 gas stipend:
 
 - Writing to storage
 - Creating a contract
@@ -353,52 +364,42 @@ Below you can see an example of a Sink contract that uses function ``receive``.
 
 .. _fallback-function:
 
-Fallback Function
+Fallback Function -- `fallback()` --
 -----------------
 
-A contract can have at most one ``fallback`` function, declared using either ``fallback () external [payable]``
-or ``fallback (bytes calldata input) external [payable] returns (bytes memory output)``
-(both without the ``function`` keyword).
-This function must have ``external`` visibility. A fallback function can be virtual, can override
-and can have modifiers.
+* contract
+  * ⚠️has <=1 ``fallback`` function -- declared, via -- ``fallback () external [payable]`` OR ``fallback (bytes calldata input) external [payable] returns (bytes memory output)`` ⚠️/
+    * ❌does NOT contain ``function`` keyword❌
+    * MUST have
+      * ``external`` visibility
+    * can
+      * be virtual
+      * override & have modifiers
+    * ALWAYS receives data
+    * `[payable]` -> enable receiving Ether
+      * [ONLY AVAILABLE 2300 gas](#receive-ether-function----retrieve---)
+        * == ALLOWED operations to execute -- depend on -- AVAILABLE gas
 
-The fallback function is executed on a call to the contract if none of the other
-functions match the given function signature, or if no data was supplied at
-all and there is no :ref:`receive Ether function <receive-ether-function>`.
-The fallback function always receives data, but in order to also receive Ether
-it must be marked ``payable``.
+* executed |
+  * call to the contract &
+    * NO other functions -- match the -- GIVEN function signature, or
+    * NO data was supplied & there is NO [`retrieve`](#receive-ether-function----retrieve---)
+  * plain Ether transfers
+    * _Example:_ -- via -- ``.send()`` or ``.transfer()``
+    * == NO such function exists
+      * == if NO such function exists, BUT exists a [payable](#fallback-function) -> fallback function will be called | plain Ether transfer
 
-If the version with parameters is used, ``input`` will contain the full data sent to the contract
-(equal to ``msg.data``) and can return data in ``output``. The returned data will not be
-ABI-encoded. Instead it will be returned without modifications (not even padding).
+* `fallback (bytes calldata input) external [payable] returns (bytes memory output)`
+  * `input`
+    * == FULL data / sent -- to the -- contract
+      * == `msg.data`
+    * if you want to decode it & NO proper functions defined -> use [function selector](../abi-spec.md#function-selector)'s FIRST 4 bytes + `abi.decode`
+      `(c, d) = abi.decode(input[4:], (uint256, uint256));`
+  * `output`
+    * ❌NOT ABI-encoded ❌
+      * Reason: 🧠returned WITHOUT modifications (NOT EVEN padding)🧠
 
-In the worst case, if a payable fallback function is also used in
-place of a receive function, it can only rely on 2300 gas being
-available (see :ref:`receive Ether function <receive-ether-function>`
-for a brief description of the implications of this).
-
-Like any function, the fallback function can execute complex
-operations as long as there is enough gas passed on to it.
-
-.. warning::
-    A ``payable`` fallback function is also executed for
-    plain Ether transfers, if no :ref:`receive Ether function <receive-ether-function>`
-    is present. It is recommended to always define a receive Ether
-    function as well, if you define a payable fallback function
-    to distinguish Ether transfers from interface confusions.
-
-.. note::
-    If you want to decode the input data, you can check the first four bytes
-    for the function selector and then
-    you can use ``abi.decode`` together with the array slice syntax to
-    decode ABI-encoded data:
-    ``(c, d) = abi.decode(input[4:], (uint256, uint256));``
-    Note that this should only be used as a last resort and
-    proper functions should be used instead.
-
-
-.. code-block:: solidity
-
+```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.6.2 <0.9.0;
 
@@ -461,6 +462,7 @@ operations as long as there is enough gas passed on to it.
             return true;
         }
     }
+```
 
 .. index:: ! overload
 
