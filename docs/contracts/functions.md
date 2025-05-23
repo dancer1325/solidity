@@ -6,14 +6,22 @@
 Functions
 *********
 
-Functions can be defined inside and outside of contracts.
+* Functions
+  * places | define them
+    * within contracts
+    * 💡outside of contracts == "free functions"💡
 
-Functions outside of a contract, also called "free functions", always have implicit ``internal``
-:ref:`visibility<visibility-and-getters>`. Their code is included in all contracts
-that call them, similar to internal library functions.
-
-.. code-block:: solidity
-
+* "free functions"
+  * 👀BUT ALWAYS executed | context of a contract👀
+  * allows
+    * call OTHER contracts
+    * send Ether -- to -- contracts
+    * destroy the contract / called them
+  * := functions / outside of a contract
+  * 👀ALWAYS have implicit ``internal``👀
+  * 's code is included | ALL contracts / call them
+    * == internal library functions
+    ```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.7.1 <0.9.0;
 
@@ -26,40 +34,39 @@ that call them, similar to internal library functions.
         bool found;
         function f(uint[] memory arr) public {
             // This calls the free function internally.
-            // The compiler will add its code to the contract.
+            // The compiler -- will add -- its code | contract
             uint s = sum(arr);
             require(s >= 10);
             found = true;
         }
     }
-
-.. note::
-    Functions defined outside a contract are still always executed
-    in the context of a contract.
-    They still can call other contracts, send them Ether and destroy the contract that called them,
-    among other things. The main difference to functions defined inside a contract
-    is that free functions do not have direct access to the variable ``this``, storage variables and functions
-    not in their scope.
+    ```
+  * vs within contracts
+    * ❌free functions do NOT have DIRECT access -- to the --
+      * variable ``this``
+      * storage variables
+      * functions / NOT | their scope ❌
 
 .. _function-parameters-return-variables:
 
 Function Parameters and Return Variables
 ========================================
 
-Functions take typed parameters as input and may, unlike in many other
-languages, also return an arbitrary number of values as output.
+* Functions parameters == function's inputs
+  * typed parameters
 
-Function Parameters
+* return variables
+  * return an ARBITRARY number of values
+
+Function Parameters == function's inputs
 -------------------
 
-Function parameters are declared the same way as variables, and the name of
-unused parameters can be omitted.
+* declaration
+  * == variables declaration
+  * if you are NOT going to use them -> omit them
 
-For example, if you want your contract to accept one kind of external call
-with two integers, you would use something like the following:
-
-.. code-block:: solidity
-
+* _Example:_ contract / accept 1 kind of external (TODO: Where ❓) call & 2 integers
+    ```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.4.16 <0.9.0;
 
@@ -69,22 +76,41 @@ with two integers, you would use something like the following:
             sum = a + b;
         }
     }
+    ```
 
-Function parameters can be used as any other local variable and they can also be assigned to.
+* uses
+  * == ANY OTHER local variable
 
 .. index:: return array, return string, array, string, array of strings, dynamic array, variably sized array, return struct, struct
 
 Return Variables
 ----------------
 
-Function return variables are declared with the same syntax after the
-``returns`` keyword.
+* ``returns (variableToReturn1 returnType1,variableToReturn2 returnType2, ...)``
+  * `variableToReturni`
+    * can be omitted
+    * 👀's value
+      * valid UNTIL they are (re-)assigned👀
+    * ways to specify
+      * explicitly
+      * implicitly
+        ```solidity
+        // SPDX-License-Identifier: GPL-3.0
+        pragma solidity >=0.4.16 <0.9.0;
 
-For example, suppose you want to return two results: the sum and the product of
-two integers passed as function parameters, then you use something like:
+        contract Simple {
+            function arithmetic(uint a, uint b)
+                public
+                pure
+                returns (uint sum, uint product)
+            {
+                return (a + b, a * b);          // implicit
+            }
+        }
+        ```
 
-.. code-block:: solidity
-
+* _Example:_ return the sum & product of 2 integers / passed -- as -- function parameters
+    ```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.4.16 <0.9.0;
 
@@ -98,54 +124,33 @@ two integers passed as function parameters, then you use something like:
             product = a * b;
         }
     }
+    ```
 
-The names of return variables can be omitted.
-Return variables can be used as any other local variable and they
-are initialized with their :ref:`default value <default-value>` and have that
-value until they are (re-)assigned.
+* uses
+  * == ANY OTHER local variable
+  * 👀initialized -- via -- their [default value](../control-structures.md)👀
 
-You can either explicitly assign to return variables and
-then leave the function as above,
-or you can provide return values
-(either a single or :ref:`multiple ones<multi-return>`) directly with the ``return``
-statement:
-
-.. code-block:: solidity
-
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.4.16 <0.9.0;
-
-    contract Simple {
-        function arithmetic(uint a, uint b)
-            public
-            pure
-            returns (uint sum, uint product)
-        {
-            return (a + b, a * b);
-        }
-    }
-
-If you use an early ``return`` to leave a function that has return variables,
-you must provide return values together with the return statement.
-
-.. note::
-    You cannot return some types from non-internal functions.
-    This includes the types listed below and any composite types that recursively contain them:
-
-    - mappings,
-    - internal function types,
-    - reference types with location set to ``storage``,
-    - multi-dimensional arrays (applies only to :ref:`ABI coder v1 <abi_coder>`),
-    - structs (applies only to :ref:`ABI coder v1 <abi_coder>`).
-
-    This restriction does not apply to library functions because of their different :ref:`internal ABI <library-selectors>`.
+* |
+  * non-internal functions,
+    * types / can NOT be returned
+      - mappings,
+      - internal function types,
+      - reference types / location == ``storage``
+      - multi-dimensional arrays
+        - applies ONLY | :ref:`ABI coder v1 <abi_coder>`
+      - structs
+        - applies ONLY | :ref:`ABI coder v1 <abi_coder>`
+      - ANY mix of these types
+  * library functions,
+    * ❌NO restriction ❌
+      * Reason: 🧠DIFFERENT :ref:`internal ABI <library-selectors>`🧠
 
 .. _multi-return:
 
 Returning Multiple Values
 -------------------------
 
-When a function has multiple return types, the statement ``return (v0, v1, ..., vn)`` can be used to return multiple values.
+* TODO: When a function has multiple return types, the statement ``return (v0, v1, ..., vn)`` can be used to return multiple values.
 The number of components must be the same as the number of return variables
 and their types have to match, potentially after an :ref:`implicit conversion <types-conversion-elementary-types>`.
 
@@ -161,52 +166,55 @@ State Mutability
 View Functions
 --------------
 
-Functions can be declared ``view`` in which case they promise not to modify the state.
+* way to declare
+  * -- via -- ``view``
+  * -- via -- TODO: are there more ways ❓
 
-.. note::
-  If the compiler's EVM target is Byzantium or newer (default) the opcode
-  ``STATICCALL`` is used when ``view`` functions are called, which enforces the state
-  to stay unmodified as part of the EVM execution. For library ``view`` functions
-  ``DELEGATECALL`` is used, because there is no combined ``DELEGATECALL`` and ``STATICCALL``.
-  This means library ``view`` functions do not have run-time checks that prevent state
-  modifications. This should not impact security negatively because library code is
-  usually known at compile-time and the static checker performs compile-time checks.
+* == functions /
+  * ❌NOT modify the state❌
 
-The following statements are considered modifying the state:
+* if the compiler's EVM target == Byzantium or newer (default) ->
+  * | call ``view`` functions
+    * | Solidity 0.5.0+=,
+      * use opcode ``STATICCALL``
+        * == | EVM execution,❌state is NOT modified❌
+    * | Solidity 0.5.0-,
+      * & you wanted state NOT modified -> use invalid explicit type conversions
+  * | library ``view`` functions, use ``DELEGATECALL``
+    * Reason: 🧠 there is NO combination of ``DELEGATECALL`` + ``STATICCALL`` 🧠
+    * == library ``view`` functions do NOT have run-time checks / prevent state modifications
+      * should NOT impact security negatively
+        * Reason: 🧠 library code is USUALLY known | compile-time & static checker -- performs -- compile-time checks🧠
 
-#. Writing to state variables (storage and transient storage).
-#. :ref:`Emitting events <events>`.
-#. :ref:`Creating other contracts <creating-contracts>`.
-#. Using ``selfdestruct``.
-#. Sending Ether via calls.
-#. Calling any function not marked ``view`` or ``pure``.
-#. Using low-level calls.
-#. Using inline assembly that contains certain opcodes.
+* statements / modify the state
+  * writing | state variables (storage and transient storage)
+  * [Emitting events](events.md)
+  * [Creating other contracts](creating-contracts.md)
+  * Using ``selfdestruct``
+  * Sending Ether -- via -- calls
+  * Calling ANY function / NOT marked ``view`` or ``pure``
+  * Using low-level calls
+  * Using inline assembly / contains certain opcodes
 
-.. code-block:: solidity
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.5.0 <0.9.0;
 
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.0 <0.9.0;
-
-    contract C {
-        function f(uint a, uint b) public view returns (uint) {
-            return a * (b + 42) + block.timestamp;
-        }
+contract C {
+    function f(uint a, uint b) public view returns (uint) {
+        return a * (b + 42) + block.timestamp;
     }
+}
+```
 
-.. note::
-  ``constant`` on functions used to be an alias to ``view``, but this was dropped in version 0.5.0.
+* ``constant`` | functions
+  * | Solidity 0.5.0.-
+    * == alias to ``view``
+  * | Solidity 0.5.0.+
+    * ⚠️ dropped ⚠️
 
-.. note::
-  Getter methods are automatically marked ``view``.
-
-.. note::
-  Prior to version 0.5.0, the compiler did not use the ``STATICCALL`` opcode
-  for ``view`` functions.
-  This enabled state modifications in ``view`` functions through the use of
-  invalid explicit type conversions.
-  By using  ``STATICCALL`` for ``view`` functions, modifications to the
-  state are prevented on the level of the EVM.
+* Getter methods
+  * AUTOMATICALLY marked -- by -- ``view``
 
 .. index:: ! pure function, function;pure
 
@@ -215,34 +223,43 @@ The following statements are considered modifying the state:
 Pure Functions
 --------------
 
-Functions can be declared ``pure`` in which case they promise not to read from or modify the state.
-In particular, it should be possible to evaluate a ``pure`` function at compile-time given
-only its inputs and ``msg.data``, but without any knowledge of the current blockchain state.
-This means that reading from ``immutable`` variables can be a non-pure operation.
+* ways to declare
+  * -- via -- ``pure``
+    * == ❌NOT read from OR NOT modify the state ❌
+  * -- via -- TODO: are there more ways ❓
 
-.. note::
-  If the compiler's EVM target is Byzantium or newer (default) the opcode ``STATICCALL`` is used,
-  which does not guarantee that the state is not read, but at least that it is not modified.
+* ALLOWED
+  * | compile-time,
+    * passing function's inputs & ``msg.data`` -> evaluate a ``pure`` function
+      * ⚠️WITHOUT knowing CURRENT blockchain state ⚠️
+        * -> read from ``immutable`` variables -- can be a -- NON-pure operation
 
-In addition to the list of state modifying statements explained above, the following are considered reading from the state:
+* if the compiler's EVM target == Byzantium or newer (default) -> use opcode ``STATICCALL``
+  * ❌NOT guarantee that the state is NOT read❌
+  * guarantee that the state is NOT modified
 
-#. Reading from state variables (storage and transient storage).
-#. Accessing ``address(this).balance`` or ``<address>.balance``.
-#. Accessing any of the members of ``block``, ``tx``, ``msg`` (with the exception of ``msg.sig`` and ``msg.data``).
-#. Calling any function not marked ``pure``.
-#. Using inline assembly that contains certain opcodes.
+* statements / read from the state
+  * [statements / modify the state](#view-functions)
+  * Reading -- from -- state variables (storage and transient storage).
+  * Accessing ``address(this).balance`` OR ``<address>.balance``
+  * Accessing ``block``, ``tx``, ``msg``'s ANY members
+    * EXCEPTION of ``msg.sig`` & ``msg.data``
+  * Calling any function / NOT marked ``pure``
+  * Using inline assembly / contains certain opcodes
 
-.. code-block:: solidity
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.5.0 <0.9.0;
 
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.5.0 <0.9.0;
-
-    contract C {
-        function f(uint a, uint b) public pure returns (uint) {
-            return a * (b + 42);
-        }
+contract C {
+    function f(uint a, uint b) public pure returns (uint) {
+        return a * (b + 42);
     }
+}
+```
 
+
+* TODO:
 Pure functions are able to use the ``revert()`` and ``require()`` functions to revert
 potential state changes when an :ref:`error occurs <assert-and-require>`.
 
