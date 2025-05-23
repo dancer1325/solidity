@@ -576,65 +576,88 @@ JSON
       - ``type``
         - ``"function"``
         - ``"constructor"``
-        - ``"receive"`` (the :ref:`"receive Ether" function <receive-ether-function>`
-        - ``"fallback"`` (the :ref:`"default" function <fallback-function>`)
-      - ``name``: the name of the function;
-      - ``inputs``: an array of objects, each of which contains:
+        - ``"receive"``
+        - ``"fallback"``
+      - ``name``
+        - name -- of the -- function
+        - syntaxes / NEVER have it
+          - Constructor,
+          - receive,
+          - fallback
+      - ``inputs``
+        - array of objects / EACH contains
+          * ``name``
+            * name of the parameter
+          * ``type``
+            * canonical type of the parameter
+          * ``components``
+            * uses
+              * tuple types
+        - syntaxes / NEVER have it
+          - Constructor,
+          - receive,
+          - fallback
+      - ``outputs``
+        - array of objects == ``inputs``
+      - ``stateMutability``
+        - string
+        - ALLOWED values
+          - ``pure``
+          - ``view``
+          - ``nonpayable``
+          - ``payable``
 
-        * ``name``: the name of the parameter.
-        * ``type``: the canonical type of the parameter (more below).
-        * ``components``: used for tuple types (more below).
+* if you send non-zero Ether | non-payable function -> will revert the transaction
 
-- ``outputs``: an array of objects similar to ``inputs``.
-- ``stateMutability``: a string with one of the following values: ``pure`` (:ref:`specified to not read
-  blockchain state <pure-functions>`), ``view`` (:ref:`specified to not modify the blockchain
-  state <view-functions>`), ``nonpayable`` (function does not accept Ether - the default) and ``payable`` (function accepts Ether).
+* ``nonpayable``
+  * == state mutability /
+    * reflected -- by -- NOT specifying a state mutability modifier AT ALL
 
-Constructor, receive, and fallback never have ``name`` or ``outputs``
-Receive and fallback do not have ``inputs`` either.
+* event description
+  * JSON object with FAIRLY SIMILAR fields
+    - ``type``
+      - ALWAYS ``"event"``
+    - ``name``
+      - name of the event
+    - ``inputs``
+      - array of objects / contains
+        * ``name``
+          * name of the parameter
+        * ``type``
+          * canonical type of the parameter
+        * ``components``
+          * used for tuple types
+        * ``indexed``
+          * if the field is part of the log's topics -> ``true``
+          * if it is one of the log's data segments -> ``false``
 
-.. note::
-    Sending non-zero Ether to non-payable function will revert the transaction.
+- ``anonymous``
+  - if the event was declared as ``anonymous`` -> ``true``
 
-.. note::
-    The state mutability ``nonpayable`` is reflected in Solidity by not specifying
-    a state mutability modifier at all.
+* Errors look
+  - ``type``
+    - ALWAYS ``"error"``
+  - ``name``
+    - name of the error
+  - ``inputs``
+    - array of objects / contains
+      * ``name``
+        * name of the parameter.
+      * ``type``
+        * canonical type of the parameter
+      * ``components``
+        * used for tuple types
 
-An event description is a JSON object with fairly similar fields:
+* MULTIPLE errors with the same name and even with identical signature in the JSON array
+  * _Example:_
+    * if the errors
+      * originate -- from -- DIFFERENT files | smart contract
+      * are referenced -- from -- ANOTHER smart contract
+  * | ABI,
+    * ONLY name of the error is relevant
 
-- ``type``: always ``"event"``
-- ``name``: the name of the event.
-- ``inputs``: an array of objects, each of which contains:
-
-  * ``name``: the name of the parameter.
-  * ``type``: the canonical type of the parameter (more below).
-  * ``components``: used for tuple types (more below).
-  * ``indexed``: ``true`` if the field is part of the log's topics, ``false`` if it is one of the log's data segments.
-
-- ``anonymous``: ``true`` if the event was declared as ``anonymous``.
-
-Errors look as follows:
-
-- ``type``: always ``"error"``
-- ``name``: the name of the error.
-- ``inputs``: an array of objects, each of which contains:
-
-  * ``name``: the name of the parameter.
-  * ``type``: the canonical type of the parameter (more below).
-  * ``components``: used for tuple types (more below).
-
-.. note::
-  There can be multiple errors with the same name and even with identical signature
-  in the JSON array; for example, if the errors originate from different
-  files in the smart contract or are referenced from another smart contract.
-  For the ABI, only the name of the error itself is relevant and not where it is
-  defined.
-
-
-For example,
-
-.. code-block:: solidity
-
+* _Example:_
+    ```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity ^0.8.4;
 
@@ -647,41 +670,42 @@ For example,
         function foo(uint a) public { emit Event(a, b); }
         bytes32 b;
     }
-
-would result in the JSON:
-
-.. code-block:: json
-
-    [{
-    "type":"error",
-    "inputs": [{"name":"available","type":"uint256"},{"name":"required","type":"uint256"}],
-    "name":"InsufficientBalance"
-    }, {
-    "type":"event",
-    "inputs": [{"name":"a","type":"uint256","indexed":true},{"name":"b","type":"bytes32","indexed":false}],
-    "name":"Event"
-    }, {
-    "type":"event",
-    "inputs": [{"name":"a","type":"uint256","indexed":true},{"name":"b","type":"bytes32","indexed":false}],
-    "name":"Event2"
-    }, {
-    "type":"function",
-    "inputs": [{"name":"a","type":"uint256"}],
-    "name":"foo",
-    "outputs": []
-    }]
+    ```
+    would result in
+    ```json
+        [{
+        "type":"error",
+        "inputs": [{"name":"available","type":"uint256"},{"name":"required","type":"uint256"}],
+        "name":"InsufficientBalance"
+        }, {
+        "type":"event",
+        "inputs": [{"name":"a","type":"uint256","indexed":true},{"name":"b","type":"bytes32","indexed":false}],
+        "name":"Event"
+        }, {
+        "type":"event",
+        "inputs": [{"name":"a","type":"uint256","indexed":true},{"name":"b","type":"bytes32","indexed":false}],
+        "name":"Event2"
+        }, {
+        "type":"function",
+        "inputs": [{"name":"a","type":"uint256"}],
+        "name":"foo",
+        "outputs": []
+        }]
+    ```
 
 Handling tuple types
 --------------------
 
 Despite the fact that names are intentionally not part of the ABI encoding, they do make a lot of sense to be included
-in the JSON to enable displaying it to the end user. The structure is nested in the following way:
+in the JSON to enable displaying it to the end user
+The structure is nested in the following way:
 
 An object with members ``name``, ``type`` and potentially ``components`` describes a typed variable.
 The canonical type is determined until a tuple type is reached and the string description up
 to that point is stored in ``type`` prefix with the word ``tuple``, i.e. it will be ``tuple`` followed by
 a sequence of ``[]`` and ``[k]`` with
-integers ``k``. The components of the tuple are then stored in the member ``components``,
+integers ``k``
+The components of the tuple are then stored in the member ``components``,
 which is of an array type and has the same structure as the top-level object except that
 ``indexed`` is not allowed there.
 
