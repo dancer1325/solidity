@@ -31,30 +31,35 @@ Function Selector
 =================
 
 * == call data's FIRST 4th bytes
-* specify the function to be called
-* TODO: It is the first (left, high-order in big-endian) four bytes of the Keccak-256 hash of the signature of
-the function
-The signature is defined as the canonical expression of the basic prototype without data location specifier, i.e.
-the function name with the parenthesised list of parameter types. Parameter types are split by a single
-comma — no spaces are used.
+  * == signature of the function's Keccak-256 hash's FIRST (from left) 4 bytes
+* 👀specify the function to be called 👀
 
-.. note::
-    The return type of a function is not part of this signature. In
-    :ref:`Solidity's function overloading <overload-function>` return types are not considered.
-    The reason is to keep function call resolution context-independent.
-    The :ref:`JSON description of the ABI<abi_json>` however contains both inputs and outputs.
+* signature of the function
+  * := canonical expression of the basic prototype /
+    * == function name + parenthesised list of parameter types /
+      * parameter types -- are split by -- 1! `,`
+        * ⚠️WITHOUT spaces ⚠️
+    * WITHOUT
+      * data location
+      * return type
+        * see [overload function](contracts/functions.md#function-overloading)
+        * [ABI Json](#json) takes in account
+      * Reason of PREVIOUS: 🧠call resolution context-independent 🧠
+
 
 Argument Encoding
 =================
 
-* FROM 5th byte
-* TODO: This encoding is also used in other places, e.g. the return values and also event arguments are encoded in the same way,
-without the four bytes specifying the function.
+* encoding -- using -- FROM 5th byte, |
+  * return values
+  * event arguments
+* encoding -- using -- FIRST 4th byte, |
+  * functions
 
 Types
 =====
 
-* EXISTING elementary types
+* elementary types
   - `uint<M>`
     - unsigned integer type of `M` bits /
       - `0 < M <= 256`
@@ -75,7 +80,7 @@ Types
     - uses
       - compute the function selector
   - `bool`
-    - == `uint8` / ALLOWED valuesres [0, 1]
+    - == `uint8` / ALLOWED values [0, 1]
     - uses
       - compute the function selector
   - `fixed<M>x<N>`
@@ -97,28 +102,24 @@ Types
     - == address (20 bytes) + function selector (4 bytes) /
       - BOTH encoded -- to -- ``bytes24``
 
-* TODO:
-The following (fixed-size) array type exists:
+* (fixed-size) array type
+  - ``<type>[M]``
+    - fixed-length array of ``M`` elements / ``M >= 0``
+      - ❌ALLOWED `M = 0`, BUT NOT supported -- by the -- compiler❌
 
-- ``<type>[M]``: a fixed-length array of ``M`` elements, ``M >= 0``, of the given type.
+* non-fixed-size types
+  - ``bytes``
+    - dynamic sized byte sequence
+  - ``string``
+    - dynamic sized unicode string / UTF-8 encoded
+  - ``<type>[]``
+    - variable-length array
 
-  .. note::
-
-      While this ABI specification can express fixed-length arrays with zero elements, they're not supported by the compiler.
-
-The following non-fixed-size types exist:
-
-- ``bytes``: dynamic sized byte sequence.
-
-- ``string``: dynamic sized unicode string assumed to be UTF-8 encoded.
-
-- ``<type>[]``: a variable-length array of elements of the given type.
-
-Types can be combined to a tuple by enclosing them inside parentheses, separated by commas:
-
-- ``(T1,T2,...,Tn)``: tuple consisting of the types ``T1``, ..., ``Tn``, ``n >= 0``
-
-It is possible to form tuples of tuples, arrays of tuples and so on. It is also possible to form zero-tuples (where ``n == 0``).
+* combine types
+  - ``(T1,T2,...,Tn)``
+    - tuple == types ``T1``, ..., ``Tn``, ``n >= 0``
+  - ``((T1,T2,...,Tn),(T1,T2,...,Tn))``
+    - tuples of tuples
 
 * library ABIs' types != ABIs' types
   * _Example:_ non-storage structs
@@ -138,7 +139,7 @@ Mapping Solidity -- to -- ABI types
 Design Criteria for the Encoding
 ================================
 
-The encoding is designed to have the following properties, which are especially useful if some arguments are nested arrays:
+* TODO: The encoding is designed to have the following properties, which are especially useful if some arguments are nested arrays:
 
 1. The number of reads necessary to access a value is at most the depth of the value
    inside the argument array structure, i.e. four reads are needed to retrieve ``a_i[k][l][r]``. In a
@@ -567,23 +568,28 @@ The error selectors ``0x00000000`` and ``0xffffffff`` are reserved for future us
 JSON
 ====
 
-The JSON format for a contract's interface is given by an array of function, event and error descriptions.
-A function description is a JSON object with the fields:
+* contract's interface / JSON format
+  * == array of function + event + error descriptions
+    * function's fields
+      - ``type``
+        - ``"function"``
+        - ``"constructor"``
+        - ``"receive"`` (the :ref:`"receive Ether" function <receive-ether-function>`
+        - ``"fallback"`` (the :ref:`"default" function <fallback-function>`)
+      - ``name``: the name of the function;
+      - ``inputs``: an array of objects, each of which contains:
 
-- ``type``: ``"function"``, ``"constructor"``, ``"receive"`` (the :ref:`"receive Ether" function <receive-ether-function>`) or ``"fallback"`` (the :ref:`"default" function <fallback-function>`);
-- ``name``: the name of the function;
-- ``inputs``: an array of objects, each of which contains:
-
-  * ``name``: the name of the parameter.
-  * ``type``: the canonical type of the parameter (more below).
-  * ``components``: used for tuple types (more below).
+        * ``name``: the name of the parameter.
+        * ``type``: the canonical type of the parameter (more below).
+        * ``components``: used for tuple types (more below).
 
 - ``outputs``: an array of objects similar to ``inputs``.
 - ``stateMutability``: a string with one of the following values: ``pure`` (:ref:`specified to not read
   blockchain state <pure-functions>`), ``view`` (:ref:`specified to not modify the blockchain
   state <view-functions>`), ``nonpayable`` (function does not accept Ether - the default) and ``payable`` (function accepts Ether).
 
-Constructor, receive, and fallback never have ``name`` or ``outputs``. Receive and fallback do not have ``inputs`` either.
+Constructor, receive, and fallback never have ``name`` or ``outputs``
+Receive and fallback do not have ``inputs`` either.
 
 .. note::
     Sending non-zero Ether to non-payable function will revert the transaction.
