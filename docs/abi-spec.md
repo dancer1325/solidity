@@ -482,11 +482,13 @@ Events
   * == abstraction -- of -- Ethereum logging/event-watching protocol
   * \+ function ABI
     * events -- are interpreted as -- typed structure
+
 * Log entries
   * -- provide --
     * contract's address
     * \<= 4 topics
     * arbitrary length binary data
+
 * event name & series of event parameters -- are split into -- 2 sub-series
   * sub-serie / is indexed
     * may number up -- to --
@@ -496,7 +498,7 @@ Events
   * sub-serie / is NOT indexed
     * -- form -- event's byte array
 
-In effect, a log entry using this ABI is described as:
+* TODO: In effect, a log entry using this ABI is described as:
 
 - ``address``: the address of the contract (intrinsically provided by Ethereum);
 - ``topics[0]``: ``keccak(EVENT_NAME+"("+EVENT_ARGS.map(canonical_type_of).join(",")+")")`` (``canonical_type_of``
