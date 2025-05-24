@@ -488,6 +488,28 @@ Events
     * contract's address
     * \<= 4 topics
     * arbitrary length binary data
+  * ==
+    - ``address``
+      - address of the contract
+      - provided -- by -- Ethereum
+    - ``topics[0]``
+      - == ``keccak(EVENT_NAME+"("+EVENT_ARGS.map(canonical_type_of).join(",")+")")``
+        - ``canonical_type_of``
+          - function /
+            - you pass an argument -> returns the canonical type
+              - _Example:_ ``canonical_type_of(uint indexed foo)`` == ``uint256``
+      - requirements
+        - ❌event NOT declared as ``anonymous``❌
+    - ``topics[n]``
+      - if event NOT declared as ``anonymous`` -> == ``abi_encode(EVENT_INDEXED_ARGS[n - 1])``
+      - if event declared as ``anonymous`` -> == ``abi_encode(EVENT_INDEXED_ARGS[n])``
+        - ``EVENT_INDEXED_ARGS`` == serie of ``EVENT_ARGS`` / are indexed
+    - ``data``
+      - == ``abi_encode(EVENT_NON_INDEXED_ARGS)``
+        - ``EVENT_NON_INDEXED_ARGS`` == series of ``EVENT_ARGS`` / NOT indexed
+
+* `abi_encode(function)`
+  * return a series of typed values
 
 * event name & series of event parameters -- are split into -- 2 sub-series
   * sub-serie / is indexed
@@ -498,32 +520,25 @@ Events
   * sub-serie / is NOT indexed
     * -- form -- event's byte array
 
-* TODO: In effect, a log entry using this ABI is described as:
-
-- ``address``: the address of the contract (intrinsically provided by Ethereum);
-- ``topics[0]``: ``keccak(EVENT_NAME+"("+EVENT_ARGS.map(canonical_type_of).join(",")+")")`` (``canonical_type_of``
-  is a function that simply returns the canonical type of a given argument, e.g. for ``uint indexed foo``, it would
-  return ``uint256``). This value is only present in ``topics[0]`` if the event is not declared as ``anonymous``;
-- ``topics[n]``: ``abi_encode(EVENT_INDEXED_ARGS[n - 1])`` if the event is not declared as ``anonymous``
-  or ``abi_encode(EVENT_INDEXED_ARGS[n])`` if it is (``EVENT_INDEXED_ARGS`` is the series of ``EVENT_ARGS`` that
-  are indexed);
-- ``data``: ABI encoding of ``EVENT_NON_INDEXED_ARGS`` (``EVENT_NON_INDEXED_ARGS`` is the series of ``EVENT_ARGS``
-  that are not indexed, ``abi_encode`` is the ABI encoding function used for returning a series of typed values
-  from a function, as described above).
-
-For all types of length at most 32 bytes, the ``EVENT_INDEXED_ARGS`` array contains
-the value directly, padded or sign-extended (for signed integers) to 32 bytes, just as for regular ABI encoding.
-However, for all "complex" types or types of dynamic length, including all arrays, ``string``, ``bytes`` and structs,
-``EVENT_INDEXED_ARGS`` will contain the *Keccak hash* of a special in-place encoded value
-(see :ref:`indexed_event_encoding`), rather than the encoded value directly.
-This allows applications to efficiently query for values of dynamic-length types
-(by setting the hash of the encoded value as the topic), but leaves applications unable
-to decode indexed values they have not queried for. For dynamic-length types,
-application developers face a trade-off between fast search for predetermined values
-(if the argument is indexed) and legibility of arbitrary values (which requires that
-the arguments not be indexed). Developers may overcome this tradeoff and achieve both
-efficient search and arbitrary legibility by defining events with two arguments — one
-indexed, one not — intended to hold the same value.
+* `EVENT_INDEXED_ARGS`
+  * == array /
+    * | types /
+      * 👀length < 32 bytes -> ``EVENT_INDEXED_ARGS`` array's value padded or sign-extended (for signed integers) -- to -- 32 bytes👀
+        * == regular ABI encoding
+      * "complex" OR dynamic length -> ``EVENT_INDEXED_ARGS`` array's value == special encoded value's *Keccak hash*
+        * _Example:_ arrays, ``string``, ``bytes`` and structs
+        * -> applications
+          * able to query -- , via topic == hash of the encoded value, for -- dynamic-length types's values
+            * trade-off
+              * BETWEEN
+                * fast search / predetermined values (if the argument is indexed) &
+                * legibility of arbitrary values (requirements: arguments NOT indexed)
+              * way to achieve BOTH
+                * define events -- with -- 2 arguments / hold SAME value
+                  * indexed argument &
+                  * NOT-indexed argument
+          * unable to decode indexed values / have NOT queried for
+        * see [indexed_event_encoding](#encoding-of-indexed-event-parameters)
 
 .. _abi_errors:
 .. index:: error, selector; of an error
@@ -531,7 +546,7 @@ indexed, one not — intended to hold the same value.
 Errors
 ======
 
-In case of a failure inside a contract, the contract can use a special opcode to abort execution and revert
+* TODO: In case of a failure inside a contract, the contract can use a special opcode to abort execution and revert
 all state changes. In addition to these effects, descriptive data can be returned to the caller.
 This descriptive data is the encoding of an error and its arguments in the same way as data for a function
 call.
