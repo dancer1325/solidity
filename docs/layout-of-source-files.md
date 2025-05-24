@@ -53,86 +53,98 @@
 
 * `pragma`
   * keyword /
-    * 👀enable CERTAIN
+    * 👀INDIRECTLY enable CERTAIN
       * compiler features or
       * compiler checks👀
   * ⚠️local | source file⚠️
     * if you want to enable it | WHOLE project -> add | ALL source files
     * if you `import` ANOTHER file -> pragma NOT AUTOMATICALLY applied | imported file
 
-## Version Pragma
+## Version Pragma -- `pragma solidity` --
 
-* TODO:
-Source files can (and should) be annotated with a version pragma to reject
-compilation with future compiler versions that might introduce incompatible
-changes. We try to keep these to an absolute minimum and
-introduce them in a way that changes in semantics also require changes
-in the syntax, but this is not always possible. Because of this, it is always
-a good idea to read through the changelog at least for releases that contain
-breaking changes. These releases always have versions of the form
-``0.x.0`` or ``x.0.0``.
+* ❌NOT
+  * change the version of the compiler❌
+  * enable or disable compiler's features❌
+* read by the compiler -- to check -- if they match
+  * == 👀version pragma -- matches with -- compiler version 👀
+  * if they do NOT match -> compiler issues an error
 
-The version pragma is used as follows: ``pragma solidity ^0.5.2;``
+* recommendations
+  * specify it
 
-A source file with the line above does not compile with a compiler earlier than version 0.5.2,
-and it also does not work on a compiler starting from version 0.6.0 (this
-second condition is added by using ``^``). Because
-there will be no breaking changes until version ``0.6.0``, you can
-be sure that your code compiles the way you intended. The exact version of the
-compiler is not fixed, so that bugfix releases are still possible.
+* ``pragma solidity versionToSpecify;``
+  * `versionToSpecify` follows [semver](https://docs.npmjs.com/cli/v6/using-npm/semver)
+  * _Example:_
+    ```solidity
+    ...
+    pragma solidity ^0.5.2;
+    ...
+    ```
+    * source file
+      * does NOT work | compiler
+        * earlier than version 0.5.2,
+        * from version 0.6.0
+      * works | compiler `v0.5.z`
 
-It is possible to specify more complex rules for the compiler version,
-these follow the same syntax used by `npm <https://docs.npmjs.com/cli/v6/using-npm/semver>`_.
+## ABI Coder Pragma -- `pragma abicoder` --
 
-.. note::
-  Using the version pragma *does not* change the version of the compiler.
-  It also *does not* enable or disable features of the compiler. It just
-  instructs the compiler to check whether its version matches the one
-  required by the pragma. If it does not match, the compiler issues
-  an error.
+* == ABI encoder + ABI decoder
 
-## ABI Coder Pragma
+* ALLOWED ones
+  * ``pragma abicoder v1``
+  * ``pragma abicoder v2``
 
-By using ``pragma abicoder v1`` or ``pragma abicoder v2`` you can
-select between the two implementations of the ABI encoder and decoder.
+* `pragma abicoder v2`
+  * == NEW ABI coder
+  * allows you
+    * encode & decode ARBITRARILY nested arrays & structs
+  * vs `v1`
+    * 's supported types == `v1`'s strict superset
+      * MORE types
+    * MORE extensive validation & safety checks
+      * -> higher gas costs
+  * |
+    * Solidity 0.6.0,
+      * non-experimental
+    * | Solidity 0.7.4-,
+      * if you set `pragma experimental ABIEncoderV2` -> ❌NOT possible select explicitly `v1`❌
+    * Reason: 🧠v1 was the default🧠
+    * Solidity 0.8.0,
+      * enabled by default
+        * ⚠️ALTHOUGH, you can specify v1 ⚠️
 
-The new ABI coder (v2) is able to encode and decode arbitrarily nested
-arrays and structs. Apart from supporting more types, it involves more extensive
-validation and safety checks, which may result in higher gas costs, but also heightened
-security. It is considered
-non-experimental as of Solidity 0.6.0 and it is enabled by default starting
-with Solidity 0.8.0. The old ABI coder can still be selected using ``pragma abicoder v1;``.
+* Contracts /
+  * use `pragma abicoder` -> can interact -- with -- ones / NOT use
+    * WITHOUT limitations
+  * NOT use `pragma abicoder` -> can interact -- with -- ones / use
+    * requirements
+      * ⚠️NON-``abicoder v2`` contract does NOT try -- to make -- calls / would require decoding types / ONLY supported -- by the -- NEW encoder⚠️
+        * OTHERWISE, compiler detect it & issue an error
+        * FAST SOLUTION: use ``pragma abicoder v2``
 
-The set of types supported by the new encoder is a strict superset of
-the ones supported by the old one. Contracts that use it can interact with ones
-that do not without limitations. The reverse is possible only as long as the
-non-``abicoder v2`` contract does not try to make calls that would require
-decoding types only supported by the new encoder. The compiler can detect this
-and will issue an error. Simply enabling ``abicoder v2`` for your contract is
-enough to make the error go away.
+* apply |
+  * ALL file's code
+    * == if contract's  source file specifies ABI coder `v1` -> can contain code / uses v2
+      * by inheriting -- from -- ANOTHER contract
+      * requirements
+        * NEW types are used
+          * ONLY internally
+          * NOT | external function signatures
 
-.. note::
-  This pragma applies to all the code defined in the file where it is activated,
-  regardless of where that code ends up eventually. This means that a contract
-  whose source file is selected to compile with ABI coder v1
-  can still contain code that uses the new encoder
-  by inheriting it from another contract. This is allowed if the new types are only
-  used internally and not in external function signatures.
+## Experimental Pragma == v2
 
-.. note::
-  Up to Solidity 0.7.4, it was possible to select the ABI coder v2
-  by using ``pragma experimental ABIEncoderV2``, but it was not possible
-  to explicitly select coder v1 because it was the default.
+* uses
+  * enable
+    * compiler's features / NOT yet enabled by default,
+    * language's features / NOT yet enabled by default
 
-## Experimental Pragma
-
-The second pragma is the experimental pragma. It can be used to enable
-features of the compiler or language that are not yet enabled by default.
-The following experimental pragmas are currently supported:
+* CURRENTLY supported
+  * [ABIEncoderV2](#ABIEncoderV2)
+  * [SMTChecker](#SMTChecker)
 
 ### ABIEncoderV2
 
-Because the ABI coder v2 is not considered experimental anymore,
+* TODO: Because the ABI coder v2 is not considered experimental anymore,
 it can be selected via ``pragma abicoder v2`` (please see above)
 since Solidity 0.7.4.
 
@@ -141,20 +153,22 @@ since Solidity 0.7.4.
 
 ### SMTChecker
 
-This component has to be enabled when the Solidity compiler is built
+* This component has to be enabled when the Solidity compiler is built
 and therefore it is not available in all Solidity binaries.
-The :ref:`build instructions<smt_solvers_build>` explain how to activate this option.
-It is activated for the Ubuntu PPA releases in most versions,
+* The :ref:`build instructions<smt_solvers_build>` explain how to activate this option
+* It is activated for the Ubuntu PPA releases in most versions,
 but not for the Docker images, Windows binaries or the
-statically-built Linux binaries. It can be activated for solc-js via the
+statically-built Linux binaries
+* It can be activated for solc-js via the
 `smtCallback <https://github.com/ethereum/solc-js#example-usage-with-smtsolver-callback>`_ if you have an SMT solver
 installed locally and run solc-js via node (not via the browser).
 
-If you use ``pragma experimental SMTChecker;``, then you get additional
+* If you use ``pragma experimental SMTChecker;``, then you get additional
 :ref:`safety warnings<formal_verification>` which are obtained by querying an
-SMT solver.
-The component does not yet support all features of the Solidity language and
-likely outputs many warnings. In case it reports unsupported features, the
+SMT solver
+* The component does not yet support all features of the Solidity language and
+likely outputs many warnings
+* In case it reports unsupported features, the
 analysis may not be fully sound.
 
 ## Importing other Source Files
