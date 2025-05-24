@@ -6,7 +6,7 @@
 
 * `pragma solidity >=0.4.16 <0.9.0;`
     * specify Solidity compiler version -- to -- run the smart contract
-        * Reason: 🧠inestable Solidity versioning `README.md`_ 🧠
+        * Reason: 🧠unstable Solidity versioning `README.md`_ 🧠
     * `pragma`
         * COMMON compilers' instructions
          * `pragma once <https://en.wikipedia.org/wiki/Pragma_once>`_

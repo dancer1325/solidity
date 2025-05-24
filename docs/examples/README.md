@@ -1,2 +1,2 @@
-# how to run locally?
+# how to run locally EACH example?
 * TODO:
