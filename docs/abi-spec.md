@@ -546,39 +546,43 @@ Events
 Errors
 ======
 
-* TODO: In case of a failure inside a contract, the contract can use a special opcode to abort execution and revert
-all state changes. In addition to these effects, descriptive data can be returned to the caller.
-This descriptive data is the encoding of an error and its arguments in the same way as data for a function
-call.
+* context
+  * failure | contract
 
-As an example, let us consider the following contract whose ``transfer`` function always
-reverts with a custom error of "insufficient balance":
+* 👀ways / contract specify a failure👀
+  * use special opcode -- to --
+    * abort execution
+    * revert ALL state changes
+  * return , to the caller, descriptive data
+    * == encoding of an error + its arguments
+    * 👀NO trust on it👀
+      * Reason: 🧠
+        * error data, by default, bubbles up -- through the -- chain of external calls
+          * == error can come -- from -- any of the contracts / DIRECTLY calls
+        * contracts can fake -- , via returning data / == error signature, -- any error 🧠
 
-.. code-block:: solidity
+* _Example:_
+    ```solidity
 
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity ^0.8.4;
+        // SPDX-License-Identifier: GPL-3.0
+        pragma solidity ^0.8.4;
 
-    contract TestToken {
-        error InsufficientBalance(uint256 available, uint256 required);
-        function transfer(address /*to*/, uint amount) public pure {
-            revert InsufficientBalance(0, amount);
+        contract TestToken {
+            error InsufficientBalance(uint256 available, uint256 required);
+            function transfer(address /*to*/, uint amount) public pure {
+                revert InsufficientBalance(0, amount);      # ALWAYS return a custom error
+            }
         }
-    }
+    ```
+  `InsufficientBalance(0, amount)` / `InsufficientBalance(uint256,uint256)` ->
+  * ``0xcf479181``
+    * == [function selector](#function-selector)
+  * ``uint256(0)``,
+  * ``uint256(amount)``.
 
-The return data would be encoded in the same way as the function call
-``InsufficientBalance(0, amount)`` to the function ``InsufficientBalance(uint256,uint256)``,
-i.e. ``0xcf479181``, ``uint256(0)``, ``uint256(amount)``.
-
-The error selectors ``0x00000000`` and ``0xffffffff`` are reserved for future use.
-
-.. warning::
-    Never trust error data.
-    The error data by default bubbles up through the chain of external calls, which
-    means that a contract may receive an error not defined in any of the contracts
-    it calls directly.
-    Furthermore, any contract can fake any error by returning data that matches
-    an error signature, even if the error is not defined anywhere.
+* ``0x00000000`` & ``0xffffffff``
+  * error selectors /
+    * 👀reserved for future use👀
 
 .. _abi_json:
 
