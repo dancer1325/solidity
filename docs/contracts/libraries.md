@@ -246,23 +246,22 @@ Its value can be obtained from Solidity using the ``.selector`` member as follow
     * `view` or
     * `pure`
 
-* EVM does not provide a direct way for a contract to detect
-whether it was called using ``CALL`` or not, but a contract
-can use the ``ADDRESS`` opcode to find out "where" it is
-currently running. The generated code compares this address
-to the address used at construction time to determine the mode
-of calling.
+* contract
+  * ways to check WHERE the code is running
+    * ❌NOT provided DIRECTLY -- by -- EVM❌
+      * == (if it was called -- via -- ``CALL``)
+    * contract use the ``ADDRESS`` opcode /
+      * output is compared -- vs -- address / used | construction time
 
-More specifically, the runtime code of a library always starts
-with a push instruction, which is a zero of 20 bytes at
-compilation time. When the deploy code runs, this constant
-is replaced in memory by the current address and this
-modified code is stored in the contract. At runtime,
-this causes the deploy time address to be the first
-constant to be pushed onto the stack and the dispatcher
-code compares the current address against this constant
-for any non-view and non-pure function.
-
-This means that the actual code stored on chain for a library
-is different from the code reported by the compiler as
-``deployedBytecode``.
+* library's
+  * runtime code
+    * ALWAYS starts with a push instruction
+    * | compilation time,
+      * compiler add a ⚠️constant / 0's of 20 bytes⚠️
+  * deploy code runs
+    * constant is replaced -- , in memory, by the -- CURRENT address
+    * modified code is stored | contract
+  * | runtime,
+    * deploy time address == first constant / pushed | stack
+    * dispatcher code compares the CURRENT address vs this constant / ANY non-view / non-pure function
+      * -> actual code / stored on chain for a library != code / reported by the compiler -- as -- ``deployedBytecode``
