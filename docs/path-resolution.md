@@ -4,7 +4,7 @@
 Import Path Resolution
 **********************
 
-In order to be able to support reproducible builds on all platforms, the Solidity compiler has to
+* TODO: In order to be able to support reproducible builds on all platforms, the Solidity compiler has to
 abstract away the details of the filesystem where source files are stored.
 Paths used in imports must work the same way everywhere while the command-line interface must be
 able to work with platform-specific paths to provide good user experience.
@@ -485,39 +485,38 @@ importing files from the following directories:
 Import Remapping
 ================
 
-Import remapping allows you to redirect imports to a different location in the virtual filesystem.
-The mechanism works by changing the translation between import paths and source unit names.
-For example you can set up a remapping so that any import from the virtual directory
-``github.com/ethereum/dapp-bin/library/`` would be seen as an import from ``dapp-bin/library/`` instead.
+* allows you to
+  * redirect imports -- to a -- DIFFERENT location | virtual filesystem
+    * _Example:_ import FROM the virtual directory ``github.com/ethereum/dapp-bin/library/`` would be seen -- as an -- import FROM ``dapp-bin/library/``
+* how does it work?
+  * chang the translation: import paths -- & -- source unit names
 
-You can limit the scope of a remapping by specifying a *context*.
-This allows creating remappings that apply only to imports located in a specific library or a specific file.
-Without a context a remapping is applied to every matching import in all the files in the virtual
-filesystem.
+* if you specify a *context* -> you can limit the remapping's scope
+  * uses
+    * remappings / apply ONLY | imports / located | specific library OR specific file
+  * if you do NOT specify a context -> remapping is applied | EVERY matching import | virtual filesystem's ALL files
 
-Import remappings have the form of ``context:prefix=target``:
+* ``context:prefix=target``
+  * == import remapping's form
+  - ``context``
+    - == file / contain the import 's source unit name's beginning
+  - ``prefix``
+    - MUST match -- with the -- import's result's source unit name's beginning
+  - ``target``
+    - == value / the prefix is replaced with
 
-- ``context`` must match the beginning of the source unit name of the file containing the import.
-- ``prefix`` must match the beginning of the source unit name resulting from the import.
-- ``target`` is the value the prefix is replaced with.
-
-For example, if you clone https://github.com/ethereum/dapp-bin/ locally to ``/project/dapp-bin``
-and run the compiler with:
-
-.. code-block:: bash
-
-    solc github.com/ethereum/dapp-bin/=dapp-bin/ --base-path /project source.sol
-
-you can use the following in your source file:
-
-.. code-block:: solidity
-
+* _Example:_
+  * `git clone https://github.com/ethereum/dapp-bin/`
+  * `solc github.com/ethereum/dapp-bin/=dapp-bin/ --base-path /project source.sol`
+  * | your source file, you can use
+    ```solidity
     import "github.com/ethereum/dapp-bin/library/math.sol"; // source unit name: dapp-bin/library/math.sol
+    ```
+  * compiler look for the file
+    * ``dapp-bin/library/math.sol``'s VFS
+    * else -> source unit name passed -- to the -- Host Filesystem Loader -> look | ``/project/dapp-bin/library/math.sol``
 
-The compiler will look for the file in the VFS under ``dapp-bin/library/math.sol``.
-If the file is not available there, the source unit name will be passed to the Host Filesystem
-Loader, which will then look in ``/project/dapp-bin/library/math.sol``.
-
+* TODO:
 .. warning::
 
     Information about remappings is stored in contract metadata.
