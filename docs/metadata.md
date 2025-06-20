@@ -1,42 +1,56 @@
 .. _metadata:
 
-#################
-Contract Metadata
-#################
+
+# Contract Metadata
 
 .. index:: metadata, contract verification
 
-The Solidity compiler automatically generates a JSON file.
-The file contains two kinds of information about the compiled contract:
+* Solidity compiler
+  * 👀AUTOMATICALLY generates -- a -- JSON file👀
+    * ``solc --metadata --output-dir``
+      * if you omit ``--output-dir`` -> print it out
+  * options
+    * appends the metadata file's IPFS hash | end of EACH contract's runtime bytecode (NOT necessarily the creation bytecode)
+      * by default,
+      * if it's published -> you can retrieve the file | authenticated way
+        * WITHOUT having to resort -- to a -- centralized data provider
+    * Swarm hash
+      * configured -- via -- :ref:`Standard JSON Interface<compiler-api>`
+    * NOT append the metadata hash | bytecode
+      * configured -- via -- :ref:`Standard JSON Interface<compiler-api>`
 
-- How to interact with the contract: ABI, and NatSpec documentation.
-- How to reproduce the compilation and verify a deployed contract:
-  compiler version, compiler settings, and source files used.
+* JSON file
+  * == 👀compiled contract's information👀
+    * how to interact -- with the -- contract
+      * ABI + NatSpec documentation
+    * how to reproduce the compilation & verify a deployed contract
+      * compiler version + compiler settings + source files used
+  * ==
+    * IPFS
+      * -- references to the -- source code
+      * hash | CID returned by ``ipfs add`` (!= file's hash direct sha2-256) (shall) == hash | bytecode
+    * Swarm
+      * -- references to the -- source code
+  * requirements
+    * upload ALSO ALL source files
 
-The compiler appends by default the IPFS hash of the metadata file to the end
-of the runtime bytecode (not necessarily the creation bytecode) of each contract,
-so that, if published, you can retrieve the file in an authenticated way without
-having to resort to a centralized data provider. The other available options are
-the Swarm hash and not appending the metadata hash to the bytecode. These can be
-configured via the :ref:`Standard JSON Interface<compiler-api>`.
+* ways / OTHERS can access it
+  * publish the metadata file |
+    * IPFS
+    * Swarm
 
-You have to publish the metadata file to IPFS, Swarm, or another service so
-that others can access it. You create the file by using the ``solc --metadata``
-command together with the ``--output-dir`` parameter. Without the parameter,
-the metadata will be written to standard output.
-The metadata contains IPFS and Swarm references to the source code, so you have to
-upload all source files in addition to the metadata file. For IPFS, the hash contained
-in the CID returned by ``ipfs add`` (not the direct sha2-256 hash of the file)
-shall match with the one contained in the bytecode.
+* _Example:_ contract metadata /
+  * human-readable
+    * == NOT properly formatted metadata
+      * Reason: 🧠should
+        * use quotes correctly
+        * reduce whitespace to a minimum
+        * sort ALL objects' keys / alphabetical order / canonical formatting
+    * ❌NOT ALLOWED,
+      * comments❌
+        * used here ONLY -- for -- explanatory purposes
 
-The metadata file has the following format. The example below is presented in a
-human-readable way. Properly formatted metadata should use quotes correctly,
-reduce whitespace to a minimum, and sort the keys of all objects in alphabetical order
-to arrive at a canonical formatting. Comments are not permitted and are used here only for
-explanatory purposes.
-
-.. code-block:: javascript
-
+    ```javascript
     {
       // Required: Details about the compiler, contents are specific
       // to the language.
@@ -170,24 +184,23 @@ explanatory purposes.
       // Required: The version of the metadata format
       "version": 1
     }
+    ```
 
-.. warning::
-  Since the bytecode of the resulting contract contains the metadata hash by default, any
-  change to the metadata might result in a change of the bytecode. This includes
-  changes to a filename or path, and since the metadata includes a hash of all the
-  sources used, a single whitespace change results in different metadata, and
-  different bytecode.
+* resulting contract's bytecode
+  * contains
+    * by default, the metadata hash
+      * if you change the metadata -> might change the bytecode
+  * == filename + path
 
-.. note::
-    The ABI definition above has no fixed order. It can change with compiler versions.
-    Starting from Solidity version 0.5.12, though, the array maintains a certain
-    order.
+* ABI definition
+  * has NO fixed order
+  * can change / compiler versions
 
 .. _encoding-of-the-metadata-hash-in-the-bytecode:
 
-Encoding of the Metadata Hash in the Bytecode
-=============================================
+## Encoding of the Metadata Hash | Bytecode
 
+* TODO:
 The compiler currently by default appends the
 `IPFS hash (in CID v0) <https://docs.ipfs.tech/concepts/content-addressing/#version-0-v0>`_
 of the canonical metadata file and the compiler version to the end of the bytecode.
@@ -229,8 +242,8 @@ boolean field ``settings.metadata.appendCBOR`` in Standard JSON input can be set
   and to use a proper CBOR parser. Do not rely on it starting with ``0xa264``
   or ``0xa2 0x64 'i' 'p' 'f' 's'``.
 
-Usage for Automatic Interface Generation and NatSpec
-====================================================
+## Usage for Automatic Interface Generation and NatSpec
+
 
 The metadata is used in the following way: A component that wants to interact
 with a contract (e.g. a wallet) retrieves the code of the contract.
@@ -247,8 +260,7 @@ the contract, together with requesting authorization for the transaction signatu
 
 For additional information, read :doc:`Ethereum Natural Language Specification (NatSpec) format <natspec-format>`.
 
-Usage for Source Code Verification
-==================================
+## Usage for Source Code Verification
 
 If pinned/published, it is possible to retrieve the metadata of the contract from IPFS/Swarm.
 The metadata file also contains the URLs or the IPFS hashes of the source files, as well as
