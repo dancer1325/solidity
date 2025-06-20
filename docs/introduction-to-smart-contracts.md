@@ -212,11 +212,13 @@
     * obtains a freshly cleared instance / EACH message call
   * uses
     * by contract,
-  *
-  * Memory is expanded by a word (256-bit), when accessing (either reading or writing) a previously untouched memory word (i.e. any offset
-  within a word)
-  * At the time of expansion, the cost in gas must be paid. Memory is more
-  costly the larger it grows (it scales quadratically).
+  * | access (either reading or writing) a PREVIOUSLY untouched memory word (== ANY offset | word),
+    * is expanded -- by a -- word (256-bit)
+  * 's cost vs gas cost
+    * gas cost
+      * | expansion, MUST be paid
+    * memory's cost
+      * the larger, it grows (== quadratically)
 
 * stack
   * == data area /
@@ -233,27 +235,44 @@
 
 ## Calldata, Returndata and Code
 
-There are also other data areas which are not as apparent as those discussed previously.
-However, they are routinely used during the execution of smart contract transactions.
+* == data areas /
+  * vs PREVIOUS ones
+    * NOT so apparent
 
-The calldata region is the data sent to a transaction as part of a smart contract transaction.
-For example, when creating a contract, calldata would be the constructor code of the new contract.
-The parameters of external functions are always initially stored in calldata in an ABI-encoded form
-and only then decoded into the location specified in their declaration.
-If declared as ``memory``, the compiler will eagerly decode them into memory at the beginning of the function,
-while marking them as ``calldata`` means that this will be done lazily, only when accessed.
-Value types and ``storage`` pointers are decoded directly onto the stack.
+* uses
+  * COMMONLY, | smart contract transactions' executions
 
-The returndata is the way a smart contract can return a value after a call.
-In general, external Solidity functions use the ``return`` keyword to ABI-encode values into the returndata area.
+* `calldata` region
+  * := data / sent to a transaction -- as part of a -- smart contract transaction
+  * uses
+    * | create a contract,
+      * `calldata` == NEW contract's constructor code
+    * EXTERNAL functions' parameters
+      * are ALWAYS initially stored | `calldata` /
+        * ABI-encoded form
+          * -> ONLY decoded | declaration's location specified
+  * vs `memory`
+    * if it's declared as
+      * ``memory`` -> compiler eagerly decode them | memory | beginning of the function
+      * ``calldata`` -> compiler decode it lazily (== ONLY | access it)
+  * value types & ``storage`` pointers | `calldata`, are decoded DIRECTLY | stack
 
-The code is the region where the EVM instructions of a smart contract are stored.
-Code is the bytes read, interpreted, and executed by the EVM during smart contract execution.
-Instruction data stored in the code is persistent as part of a contract account state field.
-Immutable and constant variables are stored in the code region.
-All references to immutables are replaced with the values assigned to them.
-A similar process is performed for constants which have their expressions inlined
-in the places where they are referenced in the smart contract code.
+* `returndata`
+  * := way / AFTER calling a smart contract, it returns a value
+  * EXTERNAL Solidity functions ABI-encode values -- , via  ``return`` keyword, -- | `returndata` area
+
+* `code`
+  * := region | smart contract's EVM instructions are stored
+  * == bytes / by the EVM | smart contract execution,
+    * read,
+    * interpreted,
+    * executed
+  * instruction data / stored | code
+    * == persistent -- as part of a -- contract account state field
+  * uses
+    * store immutable & constant variables
+      * ALL references to immutables are -- replaced with the -- values assigned to them
+      * constants / have their expressions inlined & references | smart contract code, are -- replaced with the -- values assigned to them
 
 .. index:: ! instruction
 
