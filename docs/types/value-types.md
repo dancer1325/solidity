@@ -4,14 +4,14 @@
 Value Types
 ===========
 
-The following are called value types because their variables will always be passed by value, i.e. they are always copied when they
-are used as function arguments or in assignments.
+* == variables -- ALWAYS passed by -- value
+  * uses
+    * function arguments or
+    * assignments
 
-Unlike :ref:`reference types <reference-types>`, value type declarations do not
-specify a data location since they are small enough to be stored on the stack.
-The only exception is :ref:`state variables <structure-state-variables>`.
-Those are by default located in storage, but can also be marked as
-:ref:`transient <transient-storage>`, :ref:`constant or immutable <constants>`.
+* vs [reference types](reference-types.md)
+  * ❌NOT specify a data location❌
+    * Reason: 🧠small enough to store it | stack🧠
 
 .. index:: ! bool, ! true, ! false
 
@@ -20,15 +20,14 @@ Booleans
 
 ``bool``: The possible values are constants ``true`` and ``false``.
 
-Operators:
-
-*  ``!`` (logical negation)
-*  ``&&`` (logical conjunction, "and")
-*  ``||`` (logical disjunction, "or")
-*  ``==`` (equality)
-*  ``!=`` (inequality)
-
-The operators ``||`` and ``&&`` apply the common short-circuiting rules. This means that in the expression ``f(x) || g(y)``, if ``f(x)`` evaluates to ``true``, ``g(y)`` will not be evaluated even if it may have side-effects.
+* Operators:
+  *  ``!`` (logical negation)
+  *  ``&&`` (logical conjunction, "and")
+    * -- apply the -- common short-circuiting rules
+  *  ``||`` (logical disjunction, "or")
+    * -- apply the -- common short-circuiting rules
+  *  ``==`` (equality)
+  *  ``!=`` (inequality)
 
 .. index:: ! uint, ! int, ! integer
 .. _integers:
@@ -36,7 +35,10 @@ The operators ``||`` and ``&&`` apply the common short-circuiting rules. This me
 Integers
 --------
 
-``int`` / ``uint``: Signed and unsigned integers of various sizes. Keywords ``uint8`` to ``uint256`` in steps of ``8`` (unsigned of 8 up to 256 bits) and ``int8`` to ``int256``. ``uint`` and ``int`` are aliases for ``uint256`` and ``int256``, respectively.
+* ``int`` (==``int256``) / ``uint`` (``uint256``)
+  * Signed / unsigned integers -- of -- VARIOUS sizes
+  * ``int8`` -- to -- ``int256``
+  * ``uint8`` -- to -- ``uint256``
 
 Operators:
 
@@ -45,16 +47,16 @@ Operators:
 * Shift operators: ``<<`` (left shift), ``>>`` (right shift)
 * Arithmetic operators: ``+``, ``-``, unary ``-`` (only for signed integers), ``*``, ``/``, ``%`` (modulo), ``**`` (exponentiation)
 
-For an integer type ``X``, you can use ``type(X).min`` and ``type(X).max`` to
-access the minimum and maximum value representable by the type.
+* ``type(X).min`` & ``type(X).max``
+  * access the minimum & maximum value -- representable by the -- type
 
-.. warning::
-
-  Integers in Solidity are restricted to a certain range. For example, with ``uint32``, this is ``0`` up to ``2**32 - 1``.
-  There are two modes in which arithmetic is performed on these types: The "wrapping" or "unchecked" mode and the "checked" mode.
-  By default, arithmetic is always "checked", meaning that if an operation's result falls outside the value range
-  of the type, the call is reverted through a :ref:`failing assertion<assert-and-require>`. You can switch to "unchecked" mode
-  using ``unchecked { ... }``. More details can be found in the section about :ref:`unchecked <unchecked>`.
+* restrictions | CERTAIN range
+  * _Example:_, ``uint32`` == [``0``, ``2**32 - 1``]
+  * TODO:
+    There are two modes in which arithmetic is performed on these types: The "wrapping" or "unchecked" mode and the "checked" mode.
+    By default, arithmetic is always "checked", meaning that if an operation's result falls outside the value range
+    of the type, the call is reverted through a :ref:`failing assertion<assert-and-require>`. You can switch to "unchecked" mode
+    using ``unchecked { ... }``. More details can be found in the section about :ref:`unchecked <unchecked>`.
 
 Comparisons
 ^^^^^^^^^^^
@@ -187,32 +189,40 @@ Operators:
 Address
 -------
 
-The address type comes in two largely identical flavors:
+* EXISTING flavors
+  - ``address``
+    - == 20 byte value
+      - == Ethereum address' size
+  - ``address payable``
+    - == ``address`` + ``transfer`` + ``send``
+      - ``transfer`` & ``send`` == ADDITIONAL members
+    - uses
+      - sending Ether to it
 
-- ``address``: Holds a 20 byte value (size of an Ethereum address).
-- ``address payable``: Same as ``address``, but with the additional members ``transfer`` and ``send``.
+* flavor conversions
+  * ``address payable`` -- to -> ``address``
+    * IMPLICIT conversions
+  * ``address`` -- to -> ``address payable``
+    * EXPLICIT conversions -- via -- ``payable(<address>)``
 
-The idea behind this distinction is that ``address payable`` is an address you can send Ether to,
-while you are not supposed to send Ether to a plain ``address``, for example because it might be a smart contract
-that was not built to accept Ether.
+* EXPLICIT conversions to & from ``address``
+  * ALLOWED |
+    * ``uint160``,
+    * integer literals,
+    * ``bytes20``
+    * contract types
 
-Type conversions:
+* EXPRESSIONS / can be converted -- , via the explicit conversion ``payable(...)``, to the -- type ``address payable``
+  * type ``address``
+  * contract type /
+    * can receive Ether
+      * == has a `receive` OR payable fallback function
 
-Implicit conversions from ``address payable`` to ``address`` are allowed, whereas conversions from ``address`` to ``address payable``
-must be explicit via ``payable(<address>)``.
+* ``payable(0)``
+  * valid
+  * EXCEPTION | this rule
 
-Explicit conversions to and from ``address`` are allowed for ``uint160``, integer literals,
-``bytes20`` and contract types.
-
-Only expressions of type ``address`` and contract type can be converted to the type ``address
-payable`` via the explicit conversion ``payable(...)``. For contract-type, this conversion is only
-allowed if the contract can receive Ether, i.e., the contract either has a :ref:`receive
-<receive-ether-function>` or a payable fallback function. Note that ``payable(0)`` is valid and is
-an exception to this rule.
-
-.. note::
-    If you need a variable of type ``address`` and plan to send Ether to it, then
-    declare its type as ``address payable`` to make this requirement visible. Also,
+Also,
     try to make this distinction or conversion as early as possible.
 
     The distinction between ``address`` and ``address payable`` was introduced in version 0.5.0.
@@ -232,8 +242,9 @@ Operators:
     You can use ``address(uint160(bytes20(b)))``, which results in ``0x111122223333444455556666777788889999aAaa``,
     or you can use ``address(uint160(uint256(b)))``, which results in ``0x777788889999AaAAbBbbCcccddDdeeeEfFFfCcCc``.
 
-.. note::
-    Mixed-case hexadecimal numbers conforming to `EIP-55 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md>`_ are automatically treated as literals of the ``address`` type. See :ref:`Address Literals<address_literals>`.
+* [EIP-55](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md)
+  * MIXED-case hexadecimal numbers are AUTOMATICALLY treated -- as -- ``address`` type's literals
+  * see :ref:`Address Literals<address_literals>`
 
 .. _members-of-addresses:
 
@@ -435,14 +446,17 @@ Members:
 Address Literals
 ----------------
 
-Hexadecimal literals that pass the address checksum test, for example
-``0xdCad3a6d3569DF655070DEd06cb7A1b2Ccd1D3AF`` are of ``address`` type.
-Hexadecimal literals that are between 39 and 41 digits
-long and do not pass the checksum test produce
-an error. You can prepend (for integer types) or append (for bytesNN types) zeros to remove the error.
+* := Hexadecimal literals / 👀pass the address checksum test👀
+  * _Example:_ ``0xdCad3a6d3569DF655070DEd06cb7A1b2Ccd1D3AF`` == ``address`` type
+  * ⚠️if 's long == [39, 41] digits & NOT pass the checksum test -> produce an error⚠️
+    * Solution:
+      * | integer types,
+        * prepend 0's
+      * | bytesNN types,
+        * append 0's
 
-.. note::
-    The mixed-case address checksum format is defined in `EIP-55 <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md>`_.
+* [mixed-case address checksum format](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md)
+
 
 .. index:: integer, rational number, ! literal;rational
 
