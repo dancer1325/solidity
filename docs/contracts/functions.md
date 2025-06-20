@@ -323,10 +323,9 @@ Receive Ether Function -- `receive()` --
 * recommendations
   * ALWAYS define it
 
-* TODO:
-If neither a receive Ether nor a payable fallback function is present, the
-    contract cannot receive Ether through a transaction that does not represent a payable function call and throws an
-    exception.
+* if NEITHER EXIST `receive` Ether NOR payable fallback function -> contract
+  * can NOT receive Ether -- through a -- transaction / NOT represent a payable function call
+  * throws an exception
 
 In the worst case, the ``receive`` function can only rely on 2300 gas being
 available (for example when ``send`` or ``transfer`` is used), leaving little
@@ -361,21 +360,20 @@ The following operations will consume more gas than the 2300 gas stipend:
     than the sum of some manual accounting implemented in a
     contract (i.e. having a counter updated in the receive Ether function).
 
-Below you can see an example of a Sink contract that uses function ``receive``.
 
-.. code-block:: solidity
+```solidity
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.6.0 <0.9.0;
 
-    // SPDX-License-Identifier: GPL-3.0
-    pragma solidity >=0.6.0 <0.9.0;
-
-    // This contract keeps all Ether sent to it with no way
-    // to get it back.
-    contract Sink {
-        event Received(address, uint);
-        receive() external payable {
-            emit Received(msg.sender, msg.value);
-        }
+// This contract keeps all Ether sent to it with no way
+// to get it back.
+contract Sink {
+    event Received(address, uint);
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
+}
+```
 
 .. index:: ! fallback function, function;fallback
 
