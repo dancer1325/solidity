@@ -46,7 +46,6 @@ Function Selector
         * [ABI Json](#json) takes in account
       * Reason of PREVIOUS: 🧠call resolution context-independent 🧠
 
-
 Argument Encoding
 =================
 
@@ -139,113 +138,142 @@ Mapping Solidity -- to -- ABI types
 Design Criteria for the Encoding
 ================================
 
-* TODO: The encoding is designed to have the following properties, which are especially useful if some arguments are nested arrays:
-
-1. The number of reads necessary to access a value is at most the depth of the value
-   inside the argument array structure, i.e. four reads are needed to retrieve ``a_i[k][l][r]``. In a
-   previous version of the ABI, the number of reads scaled linearly with the total number of dynamic
-   parameters in the worst case.
-
-2. The data of a variable or an array element is not interleaved with other data and it is
-   relocatable, i.e. it only uses relative "addresses".
-
+* 💡encoding's design💡
+  * useful
+    * if SOME arguments == nested arrays
+  1. 👀NUMBER of reads / necessary to access a value < argument array structure's value's depth👀
+     * _Example:_ if you want to retrieve ``a_i[k][l][r]`` -> you need 4 reads
+     * | PREVIOUS ABI versions,
+       * NUMBER of reads == (worst case) `TOTALNumberOfDynamicParameters*`
+         * == scaled linearly
+  2. variable's data OR array's elements
+     * NOT interleaved
+     * it is relocatable
+       * == ONLY uses relative "addresses"
 
 Formal Specification of the Encoding
 ====================================
 
-We distinguish static and dynamic types. Static types are encoded in-place and dynamic types are
-encoded at a separately allocated location after the current block.
+* EXISTING types
+  * static
+    * encoded in-place
+  * dynamic
+    * encoded |
+      * SEPARATED allocated location
+      * AFTER CURRENT block
 
-**Definition:** The following types are called "dynamic":
+* types / called
+  * "dynamic"
+    * ``bytes``
+    * ``string``
+    * ``T[]`` /
+      * ANY ``T``
+    * ``T[k]`` /
+      * ANY dynamic ``T``
+      * ANY ``k >= 0``
+    * ``(T1,...,Tk)``
+      * if ``Ti`` is dynamic / ``1 <= i <= k``
+  * "static"
+    * REST of types
 
-* ``bytes``
-* ``string``
-* ``T[]`` for any ``T``
-* ``T[k]`` for any dynamic ``T`` and any ``k >= 0``
-* ``(T1,...,Tk)`` if ``Ti`` is dynamic for some ``1 <= i <= k``
+* ``len(a)``
+  * := number of bytes /
+    * ``a`` == binary string
+  * 's type == ``uint256``
 
-All other types are called "static".
+* ``enc``
+  * := actual encoding
+  * == map ABI types' values -- to -- binary strings
 
-**Definition:** ``len(a)`` is the number of bytes in a binary string ``a``.
-The type of ``len(a)`` is assumed to be ``uint256``.
+* ``len(enc(X))``
+  * depends on ``X``'s value -- if and only if -- ``X``'s type is dynamic
 
-We define ``enc``, the actual encoding, as a mapping of values of the ABI types to binary strings such
-that ``len(enc(X))`` depends on the value of ``X`` if and only if the type of ``X`` is dynamic.
+* | ANY ABI value ``X``,
+  * recursively define ``enc(X)`` -- depending on -- ``X``'s type /
+    - ``(T1,...,Tk)`` / ``k >= 0`` & ANY ``T1``, ..., ``Tk``
+      ```
+      enc(X) = head(X(1)) ... head(X(k)) tail(X(1)) ... tail(X(k))
+      ```
+      - if ``Ti`` is static
+        ```
+        head(X(i)) = enc(X(i))
+        tail(X(i)) = ""
+        ```
+      - if ``Ti`` is dynamic:
+        ```
+        head(X(i)) = enc(len( head(X(1)) ... head(X(k)) tail(X(1)) ... tail(X(i-1)) ))
+        # well-defined -- Reason:🧠head parts' lengths ONLY -- depend on the -- types (NOT the values)
 
-**Definition:** For any ABI value ``X``, we recursively define ``enc(X)``, depending
-on the type of ``X`` being
-
-- ``(T1,...,Tk)`` for ``k >= 0`` and any types ``T1``, ..., ``Tk``
-
-  ``enc(X) = head(X(1)) ... head(X(k)) tail(X(1)) ... tail(X(k))``
-
-  where ``X = (X(1), ..., X(k))`` and
-  ``head`` and ``tail`` are defined for ``Ti`` as follows:
-
-  if ``Ti`` is static:
-
-    ``head(X(i)) = enc(X(i))`` and ``tail(X(i)) = ""`` (the empty string)
-
-  otherwise, i.e. if ``Ti`` is dynamic:
-
-    ``head(X(i)) = enc(len( head(X(1)) ... head(X(k)) tail(X(1)) ... tail(X(i-1)) ))``
-    ``tail(X(i)) = enc(X(i))``
-
-  Note that in the dynamic case, ``head(X(i))`` is well-defined since the lengths of
-  the head parts only depend on the types and not the values. The value of ``head(X(i))`` is the offset
-  of the beginning of ``tail(X(i))`` relative to the start of ``enc(X)``.
-
-- ``T[k]`` for any ``T`` and ``k``:
-
-  ``enc(X) = enc((X[0], ..., X[k-1]))``
-
-  i.e. it is encoded as if it were a tuple with ``k`` elements
-  of the same type.
-
-- ``T[]`` where ``X`` has ``k`` elements (``k`` is assumed to be of type ``uint256``):
-
-  ``enc(X) = enc(k) enc((X[0], ..., X[k-1]))``
-
-  i.e. it is encoded as if it were a tuple with ``k`` elements of the same type (resp. an array of static size ``k``), prefixed with
-  the number of elements.
-
-- ``bytes``, of length ``k`` (which is assumed to be of type ``uint256``):
-
-  ``enc(X) = enc(k) pad_right(X)``, i.e. the number of bytes is encoded as a
-  ``uint256`` followed by the actual value of ``X`` as a byte sequence, followed by
-  the minimum number of zero-bytes such that ``len(enc(X))`` is a multiple of 32.
-
-- ``string``:
-
-  ``enc(X) = enc(enc_utf8(X))``, i.e. ``X`` is UTF-8 encoded and this value is interpreted
-  as of ``bytes`` type and encoded further. Note that the length used in this subsequent
-  encoding is the number of bytes of the UTF-8 encoded string, not its number of characters.
-
-- ``uint<M>``: ``enc(X)`` is the big-endian encoding of ``X``, padded on the higher-order
-  (left) side with zero-bytes such that the length is 32 bytes.
-- ``address``: as in the ``uint160`` case
-- ``int<M>``: ``enc(X)`` is the big-endian two's complement encoding of ``X``, padded on the higher-order (left) side with ``0xff`` bytes for negative ``X`` and with zero-bytes for non-negative ``X`` such that the length is 32 bytes.
-- ``bool``: as in the ``uint8`` case, where ``1`` is used for ``true`` and ``0`` for ``false``
-- ``fixed<M>x<N>``: ``enc(X)`` is ``enc(X * 10**N)`` where ``X * 10**N`` is interpreted as a ``int256``.
-- ``fixed``: as in the ``fixed128x18`` case
-- ``ufixed<M>x<N>``: ``enc(X)`` is ``enc(X * 10**N)`` where ``X * 10**N`` is interpreted as a ``uint256``.
-- ``ufixed``: as in the ``ufixed128x18`` case
-- ``bytes<M>``: ``enc(X)`` is the sequence of bytes in ``X`` padded with trailing zero-bytes to a length of 32 bytes.
-
-Note that for any ``X``, ``len(enc(X))`` is a multiple of 32.
+        tail(X(i)) = enc(X(i))
+        ```
+      - ``head(X(i))``'s value == beginning of ``tail(X(i))``'s offset / -- relative to the -- start of ``enc(X)``
+    - ``T[k]`` / ANY ``T`` & ``k``
+      ```
+      enc(X) = enc((X[0], ..., X[k-1]))
+      ```
+      - == encoded -- as a tuple with -- ``k`` elements / SAME type
+    - ``T[]`` / ``X`` has ``k`` elements (``k``'s type == ``uint256``)
+      ```
+      enc(X) = enc(k) enc((X[0], ..., X[k-1]))
+      ```
+      - encoded -- as a tuple with -- ``k`` elements /
+        - SAME type
+        - prefixed -- with the -- NUMBER of elements
+    - ``bytes`` / length ``k`` ('s type == ``uint256``)
+      ```
+      enc(X) = enc(k) pad_right(X)
+      ```
+      - number of bytes -- is encoded as a -- ``uint256`` + actual value of ``X`` (| byte sequence) + minimum number of zero-bytes /
+        - ``len(enc(X))`` == 32x (== MULTIPLE of 32)
+    - ``string``
+      ```
+      enc(X) = enc(enc_utf8(X))
+      ```
+      - ``X`` -- is -- UTF-8 encoded
+      - value -- is interpreted as -- ``bytes`` type / encoded FURTHER
+        - FURTHER encoding's length == UTF-8 encoded string's NUMBER of bytes
+          - != number of characters
+    - ``uint<M>``: ``enc(X)``
+      - big-endian encoding of ``X``
+      - padded | higher-order (left) side /
+        - zero-bytes
+        - length == 32 bytes
+    - ``address``
+      - ``uint160`` case
+    - ``int<M>``: ``enc(X)``
+      - big-endian 2's complement encoding of ``X``
+      - padded | higher-order (left) side /
+        - ``0xff`` bytes -- for -- negative ``X``
+        - zero-bytes -- for -- non-negative ``X``
+        - length == 32 bytes
+    - ``bool`` : ``uint8``
+      - ``1`` == ``true``
+      - ``0`` == ``false``
+    - ``fixed<M>x<N>``: ``enc(X)``
+      - ``enc(X * 10**N)``
+        - ``X * 10**N`` == ``int256``
+    - ``fixed``
+      - == ``fixed128x18`` case
+    - ``ufixed<M>x<N>``: ``enc(X)``
+      - ``enc(X * 10**N)``
+        - ``X * 10**N`` == ``int256``
+    - ``ufixed``
+      - == ``ufixed128x18`` case
+    - ``bytes<M>``: ``enc(X)``
+      - == sequence of bytes in ``X`` /
+        - padded with trailing zero-bytes / length == 32 bytes
+    - ANY ``X`` / ``len(enc(X))`` == 32x (multiple of 32)
 
 Function Selector and Argument Encoding
 =======================================
 
-All in all, a call to the function ``f`` with parameters ``a_1, ..., a_n`` is encoded as
-
-  ``function_selector(f) enc((a_1, ..., a_n))``
-
-and the return values ``v_1, ..., v_k`` of ``f`` are encoded as
-
-  ``enc((v_1, ..., v_k))``
-
-i.e. the values are combined into a tuple and encoded.
+* call to the function ``f`` -- with -- parameters ``a_1, ..., a_n`` / is encoded as
+  ```
+  function_selector(f) enc((a_1, ..., a_n))
+  ```
+  * return values ``v_1, ..., v_k`` of ``f`` -- are
+    * encoded as -- `enc((v_1, ..., v_k))`
+    * combined into -- a tuple
 
 Examples
 ========
@@ -337,36 +365,49 @@ Examples
 Use of Dynamic Types
 ====================
 
-A call to a function with the signature ``f(uint256,uint32[],bytes10,bytes)`` with values
-``(0x123, [0x456, 0x789], "1234567890", "Hello, world!")`` is encoded in the following way:
+* call to a function / signature ``f(uint256,uint32[],bytes10,bytes)`` -- with -- values``(0x123, [0x456, 0x789], "1234567890", "Hello, world!")``
+  * is encoded -- via --
+    * take the FIRST 4 bytes of ``keccak("f(uint256,uint32[],bytes10,bytes)")``
+      * _Example:_ ``0x8be65246``
+    * encode ALL 4 arguments' head parts
+      * | static types, ``uint256`` & ``bytes10``,
+        * encoded values == 4 arguments' head parts
+      * | dynamic types, ``uint32[]`` & ``bytes``,
+        * encoded values == offset in bytes | start of their data area
+          * == NOT count the first 4 bytes
 
-We take the first four bytes of ``keccak("f(uint256,uint32[],bytes10,bytes)")``, i.e. ``0x8be65246``.
-Then we encode the head parts of all four arguments. For the static types ``uint256`` and ``bytes10``,
-these are directly the values we want to pass, whereas for the dynamic types ``uint32[]`` and ``bytes``,
-we use the offset in bytes to the start of their data area, measured from the start of the value
-encoding (i.e. not counting the first four bytes containing the hash of the function signature). These are:
+* _Example:_
+  - ``0x0000000000000000000000000000000000000000000000000000000000000123``
+    - == ``0x123`` padded -- to -- 32 bytes
+  - ``0x0000000000000000000000000000000000000000000000000000000000000080``
+    - == SECOND parameter's start of data part's offset
+    - 4*32 bytes
+      - == head part's size
+  - ``0x3132333435363738393000000000000000000000000000000000000000000000``
+    - == ``"1234567890"`` padded -- to -- 32 bytes | right
+  - ``0x00000000000000000000000000000000000000000000000000000000000000e0``
+    - == FOURTH parameter's start of data part's offset = FIRST dynamic parameter's start of data part's offset + FIRST dynamic parameter's data part's size = 4\*32 + 3\*32
 
-- ``0x0000000000000000000000000000000000000000000000000000000000000123`` (``0x123`` padded to 32 bytes)
-- ``0x0000000000000000000000000000000000000000000000000000000000000080`` (offset to start of data part of second parameter, 4*32 bytes, exactly the size of the head part)
-- ``0x3132333435363738393000000000000000000000000000000000000000000000`` (``"1234567890"`` padded to 32 bytes on the right)
-- ``0x00000000000000000000000000000000000000000000000000000000000000e0`` (offset to start of data part of fourth parameter = offset to start of data part of first dynamic parameter + size of data part of first dynamic parameter = 4\*32 + 3\*32 (see below))
+- FIRST dynamic argument's data part -- ``[0x456, 0x789]`` --
+  - ``0x0000000000000000000000000000000000000000000000000000000000000002``
+    - NUMBER of array's elements
+      - 2
+  - ``0x0000000000000000000000000000000000000000000000000000000000000456``
+    - FIRST element
+  - ``0x0000000000000000000000000000000000000000000000000000000000000789``
+    - SECOND element
 
-After this, the data part of the first dynamic argument, ``[0x456, 0x789]`` follows:
+- SECOND dynamic argument -- ``"Hello, world!"`` --
+  - ``0x000000000000000000000000000000000000000000000000000000000000000d``
+    - NUMBER of elements | bytes
+      -
+  - ``0x48656c6c6f2c20776f726c642100000000000000000000000000000000000000``
+    - ``"Hello, world!"`` -- padded to -- 32 bytes | right
 
-- ``0x0000000000000000000000000000000000000000000000000000000000000002`` (number of elements of the array, 2)
-- ``0x0000000000000000000000000000000000000000000000000000000000000456`` (first element)
-- ``0x0000000000000000000000000000000000000000000000000000000000000789`` (second element)
+* ALL together encoding
 
-Finally, we encode the data part of the second dynamic argument, ``"Hello, world!"``:
-
-- ``0x000000000000000000000000000000000000000000000000000000000000000d`` (number of elements (bytes in this case): 13)
-- ``0x48656c6c6f2c20776f726c642100000000000000000000000000000000000000`` (``"Hello, world!"`` padded to 32 bytes on the right)
-
-All together, the encoding is (newline after function selector and each 32-bytes for clarity):
-
-.. code-block:: none
-
-    0x8be65246
+  ```
+  0x8be65246
       0000000000000000000000000000000000000000000000000000000000000123
       0000000000000000000000000000000000000000000000000000000000000080
       3132333435363738393000000000000000000000000000000000000000000000
@@ -376,8 +417,9 @@ All together, the encoding is (newline after function selector and each 32-bytes
       0000000000000000000000000000000000000000000000000000000000000789
       000000000000000000000000000000000000000000000000000000000000000d
       48656c6c6f2c20776f726c642100000000000000000000000000000000000000
+  ```
 
-Let us apply the same principle to encode the data for a function with a signature ``g(uint256[][],string[])``
+* TODO: Let us apply the same principle to encode the data for a function with a signature ``g(uint256[][],string[])``
 with values ``([[1, 2], [3]], ["one", "two", "three"])`` but start from the most atomic parts of the encoding:
 
 First we encode the length and data of the first embedded dynamic array ``[1, 2]`` of the first root array ``[[1, 2], [3]]``:
@@ -855,9 +897,12 @@ As an example, the encoding of ``int16(-1), bytes1(0x42), uint16(0x03), string("
 
 More specifically:
 
-- During the encoding, everything is encoded in-place. This means that there is
-  no distinction between head and tail, as in the ABI encoding, and the length
-  of an array is not encoded.
+- | encoding,
+  - everything is encoded in-place
+    - ==
+      - ❌NO distinction BETWEEN head -- & -- tail❌
+        - ⚠️!= ABI encoding⚠️
+      - array's length NOT encoded
 - The direct arguments of ``abi.encodePacked`` are encoded without padding,
   as long as they are not arrays (or ``string`` or ``bytes``).
 - The encoding of an array is the concatenation of the
