@@ -250,11 +250,9 @@ i.e. the values are combined into a tuple and encoded.
 Examples
 ========
 
-Given the contract:
+* let's have
 
-.. code-block:: solidity
-    :force:
-
+    ```solidity
     // SPDX-License-Identifier: GPL-3.0
     pragma solidity >=0.4.16 <0.9.0;
 
@@ -263,60 +261,78 @@ Given the contract:
         function baz(uint32 x, bool y) public pure returns (bool r) { r = x > 32 || y; }
         function sam(bytes memory, bool, uint[] memory) public pure {}
     }
-
-
-Thus, for our ``Foo`` example, if we wanted to call ``bar`` with the argument ``["abc", "def"]``, we would pass 68 bytes total, broken down into:
-
-- ``0xfce353f6``: the Method ID. This is derived from the signature ``bar(bytes3[2])``.
-- ``0x6162630000000000000000000000000000000000000000000000000000000000``: the first part of the first
-  parameter, a ``bytes3`` value ``"abc"`` (left-aligned).
-- ``0x6465660000000000000000000000000000000000000000000000000000000000``: the second part of the first
-  parameter, a ``bytes3`` value ``"def"`` (left-aligned).
-
-In total:
-
-.. code-block:: none
-
-    0xfce353f661626300000000000000000000000000000000000000000000000000000000006465660000000000000000000000000000000000000000000000000000000000
-
-If we wanted to call ``baz`` with the parameters ``69`` and
-``true``, we would pass 68 bytes total, which can be broken down into:
-
-- ``0xcdcd77c0``: the Method ID. This is derived as the first 4 bytes of the Keccak hash of
-  the ASCII form of the signature ``baz(uint32,bool)``.
-- ``0x0000000000000000000000000000000000000000000000000000000000000045``: the first parameter,
-  a uint32 value ``69`` padded to 32 bytes
-- ``0x0000000000000000000000000000000000000000000000000000000000000001``: the second parameter - boolean
-  ``true``, padded to 32 bytes
-
-In total:
-
-.. code-block:: none
-
-    0xcdcd77c000000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001
-
-It returns a single ``bool``. If, for example, it were to return ``false``, its output would be
-the single byte array ``0x0000000000000000000000000000000000000000000000000000000000000000``, a single bool.
-
-If we wanted to call ``sam`` with the arguments ``"dave"``, ``true`` and ``[1,2,3]``, we would
-pass 292 bytes total, broken down into:
-
-- ``0xa5643bf2``: the Method ID. This is derived from the signature ``sam(bytes,bool,uint256[])``. Note that ``uint`` is replaced with its canonical representation ``uint256``.
-- ``0x0000000000000000000000000000000000000000000000000000000000000060``: the location of the data part of the first parameter (dynamic type), measured in bytes from the start of the arguments block. In this case, ``0x60``.
-- ``0x0000000000000000000000000000000000000000000000000000000000000001``: the second parameter: boolean true.
-- ``0x00000000000000000000000000000000000000000000000000000000000000a0``: the location of the data part of the third parameter (dynamic type), measured in bytes. In this case, ``0xa0``.
-- ``0x0000000000000000000000000000000000000000000000000000000000000004``: the data part of the first argument, it starts with the length of the byte array in elements, in this case, 4.
-- ``0x6461766500000000000000000000000000000000000000000000000000000000``: the contents of the first argument: the UTF-8 (equal to ASCII in this case) encoding of ``"dave"``, padded on the right to 32 bytes.
-- ``0x0000000000000000000000000000000000000000000000000000000000000003``: the data part of the third argument, it starts with the length of the array in elements, in this case, 3.
-- ``0x0000000000000000000000000000000000000000000000000000000000000001``: the first entry of the third parameter.
-- ``0x0000000000000000000000000000000000000000000000000000000000000002``: the second entry of the third parameter.
-- ``0x0000000000000000000000000000000000000000000000000000000000000003``: the third entry of the third parameter.
-
-In total:
-
-.. code-block:: none
-
-    0xa5643bf20000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000464617665000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003
+    ```
+  * if we want to call ``bar`` -- with the -- argument ``["abc", "def"]`` -> we would pass 68 bytes (`0xfce353f661626300000000000000000000000000000000000000000000000000000000006465660000000000000000000000000000000000000000000000000000000000`)
+    - ``0xfce353f6``:
+      - FIRST 4 bytes
+      - == Method ID
+        - derived -- from the -- signature ``bar(bytes3[2])``
+    - ``0x6162630000000000000000000000000000000000000000000000000000000000``
+      - FIRST parameter's FIRST part
+      - ``bytes3`` value
+      - ``"abc"` == 616263 | hexadecimal
+        - "a" == "61"
+        - "b" == "62"
+        - "c" == "63"
+        - LEFT-aligned
+    - ``0x6465660000000000000000000000000000000000000000000000000000000000``
+      - FIRST parameter's SECOND part
+      - ``bytes3`` value
+      - ``"def"``== 646566 | hexadecimal
+        - "d" == "64"
+        - "e" == "65"
+        - "f" == "66"
+        - LEFT-aligned
+  * if we want to call ``baz`` -- with the -- parameters ``69`` & ``true`` -> we would pass 68 bytes (`0xcdcd77c000000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001`)
+    * ``0xcdcd77c0``
+      * == Method ID
+      * derived -- as -- steps
+        * ``baz(uint32,bool)`` | ASCII form
+        * Keccak hash of PREVIOUS output
+        * PREVIOUS output's FIRST 4 bytes
+    - ``0x0000000000000000000000000000000000000000000000000000000000000045``
+      - FIRST parameter
+      - uint32 value ``69`` -- padded to -- 32 bytes
+    - ``0x0000000000000000000000000000000000000000000000000000000000000001``
+      - SECOND parameter
+      - ``true`` -- padded to -- 32 bytes
+    - return 1! ``bool``
+      - if ``false`` -> output = ``0x0000000000000000000000000000000000000000000000000000000000000000``
+  - if we want to call ``sam`` -- with the -- arguments ``"dave"``, ``true`` and ``[1,2,3]`` -> we would pass 292 bytes (`0xa5643bf20000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000464617665000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003`)
+    - ``0xa5643bf2``
+      - == Method ID
+      - derived -- from the -- signature ``sam(bytes,bool,uint256[])``
+        - 👀``uint`` is replaced -- with its -- canonical representation ``uint256``👀
+    - ``0x0000000000000000000000000000000000000000000000000000000000000060``
+      - FIRST parameter's location of the data /
+        - measured in bytes
+        - from the arguments block's start
+      - ``0x60``
+    - ``0x0000000000000000000000000000000000000000000000000000000000000001``
+      - SECOND parameter == boolean
+        - true
+    - ``0x00000000000000000000000000000000000000000000000000000000000000a0``
+      - THIRD parameter's location of the data/
+        - measured in bytes
+      - ``0xa0``
+    - ``0x0000000000000000000000000000000000000000000000000000000000000004``
+      - FIRST argument's data part
+      - starts -- with -- NUMBER of byte array's elements
+    - ``0x6461766500000000000000000000000000000000000000000000000000000000``
+      - FIRST argument's contents
+      - steps
+        - UTF-8 encode ``"dave"``
+          - == ASCII-encoded
+        - padded | right -- to -- 32 bytes
+    - ``0x0000000000000000000000000000000000000000000000000000000000000003``
+      - THIRD argument's data part
+        - starts -- with -- NUMBER of array's elements
+    - ``0x0000000000000000000000000000000000000000000000000000000000000001``
+      - THIRD parameter's FIRST entry
+    - ``0x0000000000000000000000000000000000000000000000000000000000000002``
+      - THIRD parameter's SECOND entry
+    - ``0x0000000000000000000000000000000000000000000000000000000000000003``
+      - THIRD parameter's THIRD entry
 
 Use of Dynamic Types
 ====================
@@ -875,23 +891,35 @@ for prepending a function selector. Since the encoding is ambiguous, there is no
 Encoding of Indexed Event Parameters
 ====================================
 
-Indexed event parameters that are not value types, i.e. arrays and structs are not
-stored directly but instead a Keccak-256 hash of an encoding is stored. This encoding
-is defined as follows:
+* indexed event parameters
+  * are NOT value types
+    * == arrays & structs are stored
+      * NOT DIRECTLY
+      * 👀by previous Keccak-256 hash encoding👀
 
-- the encoding of a ``bytes`` and ``string`` value is just the string contents
-  without any padding or length prefix.
-- the encoding of a struct is the concatenation of the encoding of its members,
-  always padded to a multiple of 32 bytes (even ``bytes`` and ``string``).
-- the encoding of an array (both dynamically- and statically-sized) is
-  the concatenation of the encoding of its elements, always padded to a multiple
-  of 32 bytes (even ``bytes`` and ``string``) and without any length prefix
+* Keccak-256 hash encoding
+  * encode ``bytes`` & ``string`` value == string contents /
+    * NO padding
+    * NO length prefix
+  - encode a struct
+    - == encode member1 + encode member2 + ... /
+      - ALWAYS padded -- to a -- 32x bytes (== MULTIPLE of 32)
+  - encode an array (dynamically- & statically-sized)
+    - == encode member1 + encode member2 + ... /
+      - ALWAYS padded -- to a -- 32x bytes (== MULTIPLE of 32)
+      - NO length prefix
 
-In the above, as usual, a negative number is padded by sign extension and not zero padded.
-``bytesNN`` types are padded on the right while ``uintNN`` / ``intNN`` are padded on the left.
+* negative number
+  * padded
+    * -- by -- sign extension
+    * -- NOT by -- zero
 
-.. warning::
+* ``bytesNN`` types
+  * are padded | right
+* ``uintNN`` / ``intNN``
+  * are padded | left
 
-    The encoding of a struct is ambiguous if it contains more than one dynamically-sized
-    array. Because of that, always re-check the event data and do not rely on the search result
-    based on the indexed parameters alone.
+* ⚠️if a struct has >1 dynamically-sized array -> encoding of the struct is ambiguous ⚠️
+  * recommendations
+    * ALWAYS re-check the event data
+    * NOT rely on the search result / -- based ONLY on -- indexed parameters
